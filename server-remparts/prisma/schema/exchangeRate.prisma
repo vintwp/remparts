@@ -1,0 +1,6 @@
+model ExchangeRate {
+  id    Int @id @default(autoincrement()) @map("exchangerate_id")
+  value Float @default(1.0)
+
+  @@map("exchange_rate")
+}

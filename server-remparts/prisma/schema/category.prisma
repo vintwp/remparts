@@ -1,0 +1,25 @@
+model Category {
+  id              Int @id @default(autoincrement()) @map("category_id")
+  name            String @unique
+  url             String @unique
+  image           String? @default("no-image.jpg")
+  department      Department @relation(fields: [departmentId], references: [id])
+  departmentId    Int @map("department_id")
+  item            Item[]
+  brand           Brand[]
+  quality         Quality[]
+  complianceWith  Compliance[]
+
+  @@map("category")
+}
+
+
+// model CategoriesOnBrands {
+//   category    Category @relation(fields: [categoryId], references: [id])
+//   categoryId  Int
+//   brand       Brand @relation(fields: [brandId], references: [id])
+//   brandId     Int
+
+//   @@id([categoryId, brandId])
+//   @@map("categories_on_brands")
+// }

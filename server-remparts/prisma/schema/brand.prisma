@@ -1,0 +1,8 @@
+model Brand {
+  id          Int @id @default(autoincrement()) @map("brand_id")
+  name        String @unique
+  item        Item[]
+  category    Category[]
+
+  @@map("brand")
+}

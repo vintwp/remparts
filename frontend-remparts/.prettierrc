@@ -1,0 +1,17 @@
+{
+  "plugins": [
+    "prettier-plugin-tailwindcss",
+    "prettier-plugin-classnames",
+    "prettier-plugin-merge"
+  ],
+  "arrowParens": "avoid",
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "jsxSingleQuote": false,
+  "printWidth": 100,
+  "semi": true,
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "singleAttributePerLine": true
+}

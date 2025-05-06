@@ -1,0 +1,19 @@
+# local env files
+.env*.local
+.env*
+
+# depencies
+node_modules
+
+# next.js
+.next
+
+# nest.js
+dist
+
+# ide
+.vscode
+
+# testing
+test
+

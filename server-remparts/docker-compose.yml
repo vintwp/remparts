@@ -1,0 +1,66 @@
+services:
+  rpdb:
+    image: postgres:latest
+    container_name: rpdb
+    restart: always
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - rpnetwork
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    depends_on:
+      - rpdb
+    networks:
+      - rpnetwork
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    ports:
+      - '5001:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    depends_on:
+      - rpdb
+    networks:
+      - rpnetwork
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: meilisearch
+    volumes:
+      - meilisearch-data:/meili_data
+    ports:
+      - '${MEILI_PORT}:7700'
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://${MEILI_HOST}:${MEILI_PORT}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rpnetwork
+volumes:
+  postgres_data:
+  redis_data:
+  pgadmin-data:
+  meilisearch-data:
+networks:
+  rpnetwork:
+    driver: bridge

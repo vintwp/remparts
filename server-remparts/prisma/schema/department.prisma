@@ -1,0 +1,10 @@
+model Department {
+  id        Int @id @default(autoincrement()) @map("department_id")
+  name      String @unique
+  url       String @unique
+  order     Int    @unique
+  item      Item[]
+  category  Category[]
+
+  @@map("department")
+}

@@ -1,0 +1,47 @@
+model Item {
+  id              Int @id @default(autoincrement()) @map("item_id")
+  dbId            String @unique
+  name            String @map("item_name")
+  price           Float @map("item_price")
+  stock           Int @default(0)
+  compliance      Compliance? @relation(fields: [complianceId], references: [id])
+  complianceId    Int? @map("compliance_id")
+  quality         Quality? @relation(fields: [qualityId], references: [id])
+  qualityId       Int? @map("quality_id")
+  department      Department @relation(fields: [departmentId], references: [id])
+  departmentId    Int
+  category        Category @relation(fields: [categoryId], references: [id])
+  categoryId      Int @map("category_id")
+  brand           Brand? @relation(fields: [brandId], references: [id])
+  brandId         Int @map("brand_id")
+  images          ItemImage[]
+
+  @@map("item")
+}
+
+model Quality {
+  id        Int @id @default(autoincrement()) @map("quality_id")
+  value     String @unique
+  item      Item[]
+  category  Category[]
+
+  @@map("quality")
+}
+
+model Compliance {
+  id          Int @id @default(autoincrement()) @map("compliance_id")
+  value       String @unique
+  item        Item[]
+  category  Category[]
+
+  @@map("compliance")
+}
+
+model ItemImage {
+  id    Int @id @default(autoincrement()) @map("item_image_id")
+  link  String
+  item  Item @relation(fields: [itemId], references: [id]) 
+  itemId Int @map("item_id")
+
+  @@map("item_image")
+}
