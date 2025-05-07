@@ -1,7 +1,5 @@
 import { PerPage, ShowStock, SortBy } from '@/features';
 
-type Props = {};
-
 export function ControlPanel() {
   return (
     <div className="flex items-center justify-between gap-3 rounded-sm bg-neutral-50 p-2">

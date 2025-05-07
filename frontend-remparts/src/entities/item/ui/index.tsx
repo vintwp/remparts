@@ -26,8 +26,8 @@ export function Item({ item }: Props) {
         />
       </div>
       <div className="basis-9/12 px-1 py-2 md:basis-8/12 md:px-0">
-        <p className="text-xs text-[10px] text-black/30">Код товару - {item.id}</p>
-        <p className="mb-2 text-[17px] leading-5">{item.name}</p>
+        <p className="text-xs text-[12px] text-black/30">Код товару - {item.id}</p>
+        <p className="mb-2 text-[18px] leading-5">{item.name}</p>
         <StockLabel stock={item.stock} />
       </div>
       <div

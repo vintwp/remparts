@@ -119,7 +119,7 @@ export function Search({}: Props) {
               </Button>
             ))}
             <Separator />
-            {searchResult.pagination.total > 10 && (
+            {searchResult.pagination.total > 1 && (
               <Button
                 variant="link"
                 className="line-clamp-1 justify-start truncate px-4 py-2 text-black/70"

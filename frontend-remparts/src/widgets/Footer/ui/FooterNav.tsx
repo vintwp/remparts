@@ -11,11 +11,11 @@ export function FooterNav() {
         className="mt-2"
       />
       <FooterLink
-        href="/delivery"
+        href="/payment-and-delivery"
         text="Оплата і доставка"
       />
       <FooterLink
-        href="/delivery"
+        href="/warranty-and-returns"
         text="Обмін та повернення"
       />
       <FooterLink

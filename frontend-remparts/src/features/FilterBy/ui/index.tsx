@@ -98,8 +98,7 @@ export function FilterBy<T extends FilterParams>({
 
   useEffect(() => {
     setItemsToRender(filterProperties || []);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filterProperties]);
 
   return (
     <div className="space-y-3 px-3">

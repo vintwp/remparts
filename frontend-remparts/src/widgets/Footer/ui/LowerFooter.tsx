@@ -5,7 +5,7 @@ export function LowerFooter() {
   return (
     <div className="bg-primary-alt/60 border-divider relative overflow-hidden border-t-[1px]">
       <Container>
-        <div className="pt-7 pb-5 md:pt-14 md:pb-11">
+        <div className="pt-4 pb-4 md:pt-7 md:pb-5">
           <p className="text-sm leading-none font-extralight text-white md:text-base">
             © 2025 Інтернет-магазин <span className="font-semibold">Remparts</span>
           </p>

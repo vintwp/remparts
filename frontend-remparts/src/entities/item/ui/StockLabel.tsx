@@ -28,7 +28,7 @@ export function StockLabel({ stock }: Props) {
         )}
       </span>
 
-      <span className="leading-[12px] text-black/50">
+      <span className="text-[12px] text-black/50">
         {stock ? 'В наявності' : 'Немає в наявності'}
       </span>
     </div>

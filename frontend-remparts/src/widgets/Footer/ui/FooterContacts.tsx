@@ -8,7 +8,7 @@ export function FooterContacts() {
       <FooterLink
         href="tel:+380000000000"
         text="+380000000000"
-        className="mt-2 text-lg font-semibold"
+        className="mt-2 font-semibold md:text-lg"
       />
       <FooterLink
         href="mailto:test@gmail.com"

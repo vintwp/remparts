@@ -47,7 +47,9 @@ export default async function SearchPage({ searchParams }: Props) {
           />
         </div>
         <div className="basis-full overflow-hidden md:basis-2/3">
-          <ControlPanel />
+          <div className="mb-2">
+            <ControlPanel />
+          </div>
 
           <ItemsList items={searchResult.ok ? searchResult.data.items : []} />
 

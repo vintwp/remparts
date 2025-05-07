@@ -50,10 +50,6 @@ export class SearchController {
     @Query('sortBy')
     sortBy: string,
   ) {
-    console.log(
-      `query-${query}, category-${category}, page-${page}, perPage-${perPage}, stock-${stock}, sortBy-${sortBy}`,
-    );
-
     return this.searchService.search(
       query,
       category,
@@ -62,10 +58,5 @@ export class SearchController {
       stock,
       sortBy,
     );
-  }
-
-  @Get('docs')
-  async getDocs() {
-    return this.searchService.getIndexedDocs();
   }
 }

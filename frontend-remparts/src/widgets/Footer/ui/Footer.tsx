@@ -13,7 +13,7 @@ export function Footer() {
         fill
         className="-z-10 object-cover"
       />
-      <footer className="py-10">
+      <footer className="py-6 md:py-10">
         <Container>
           <div className="flex flex-col sm:flex-row-reverse sm:justify-end sm:gap-[5%]">
             <div className="basis-full md:basis-auto">
@@ -23,7 +23,7 @@ export function Footer() {
               <FooterContacts />
             </div>
           </div>
-          <p className="mt-10 text-center text-[#4480A0]">
+          <p className="mt-4 text-center text-xs text-[#4480A0] md:mt-10">
             *Всі торгові марки, логотипи та елементи дизайну представлені на цьому сайті, є
             власністю їхніх відповідних власників та служать виключно з інформаційною метою.
           </p>

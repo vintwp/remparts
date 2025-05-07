@@ -91,7 +91,9 @@ export default async function Page({ params, searchParams }: Props) {
           ) : null}
         </div>
         <div className="basis-full md:basis-2/3">
-          <ControlPanel category={category} />
+          <div className="mb-2">
+            <ControlPanel category={category} />
+          </div>
 
           <ItemsList items={itemsByCategory.items} />
           <div className="mt-5 md:mt-10">

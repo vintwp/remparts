@@ -99,10 +99,6 @@ export class SearchService implements OnApplicationBootstrap {
     });
   }
 
-  async getIndexedDocs() {
-    return this.meiliService.getDocs();
-  }
-
   async onApplicationBootstrap() {
     await this.intitialize();
   }
