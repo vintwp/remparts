@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { Button, Container } from '@/shared/ui';
 import Link from 'next/link';
+import { PHONE_NUMBER } from '@/shared/config';
 
 const headerLink = [
   {
@@ -60,7 +61,7 @@ export function TopHeader() {
             asChild
             className="rounded-none p-0"
           >
-            <Link href="tel:+380000000000">+38 (000)000-00-00</Link>
+            <Link href={`tel:${PHONE_NUMBER.href}`}>{PHONE_NUMBER.value}</Link>
           </Button>
         </div>
       </div>

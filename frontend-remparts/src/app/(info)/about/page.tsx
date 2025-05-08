@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Breadcrumbs } from '../ui';
 import Image from 'next/image';
+import { EMAIL, PHONE_NUMBER } from '@/shared/config';
 
 export default function AboutPage() {
   return (
@@ -65,16 +66,16 @@ export default function AboutPage() {
         </p>
         <ul className="list-disc space-y-2 pl-5">
           <li>
-            <b className="font-semibold">Телефон:</b> +38 (063) 610 98 83
+            <b className="font-semibold">Телефон:</b> {PHONE_NUMBER.value}
           </li>
           <li>
             <b className="font-semibold">
               Email:{' '}
               <Link
-                href="mailto:test@gmail.com"
-                className="font-normal underline-offset-2 hover:underline"
+                href={`mailto:${EMAIL}`}
+                className="cursor-pointer font-normal underline-offset-2 hover:underline"
               >
-                test@gmail.com
+                {EMAIL}
               </Link>
             </b>
           </li>
@@ -84,10 +85,10 @@ export default function AboutPage() {
         <h2 className="text-2xl font-bold">Графік роботи</h2>
         <ul className="mt-2 list-disc space-y-2 pl-5">
           <li>
-            <b className="font-semibold">Понеділок-П`&apos;ятниця:</b> 10:00 — 17:00
+            <b className="font-semibold">Понеділок-П&apos;ятниця:</b> 11:00 — 18:00
           </li>
           <li>
-            <b className="font-semibold">Субота:</b> 10:00 — 16:00
+            <b className="font-semibold">Субота:</b> 11:00 — 18:00
           </li>
           <li>
             <b className="font-semibold">Неділя:</b> вихідний

@@ -1,0 +1,23 @@
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  oauthId       String?   @unique
+  email         String    @unique
+  password      String?
+  name          String?   
+  adress        String?
+  phoneNumber   String?                   @map("phone_number")
+  role          Role      @default(USER)
+  cart          Cart?
+  order         Order[]
+  isVerified    Boolean   @default(false) @map("is_verified")
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt      @map("updated_at")
+
+  @@map("user")
+}

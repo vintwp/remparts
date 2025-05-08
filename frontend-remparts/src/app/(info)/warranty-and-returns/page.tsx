@@ -85,12 +85,12 @@ export default function WarrantyAndReturnsPage() {
           <li>
             Зверніться на електронну адресу{' '}
             <Link
-              href="mailto:test@gmail.com"
+              href="mailto:remparts.accessories@gmail.com"
               className="font-medium underline-offset-2 hover:underline"
             >
-              test@gmail.com
+              remparts.accessories@gmail.com
             </Link>{' '}
-            або за телефоном <span className="font-medium">+38 (093) 000 00 00</span>, коротко
+            або за телефоном <span className="font-medium">+38 (073) 256 26 65</span>, коротко
             опишіть ситуацію, додайте фото або відео придбаного товару.
           </li>
           <li>
