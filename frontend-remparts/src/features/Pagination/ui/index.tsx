@@ -72,7 +72,7 @@ export function Pagination({ currentPage, lastPage }: Props) {
         <PaginationPageButton
           key={`page-${idx}`}
           targetPage={number}
-          targetUrl={createPath(idx === 0 ? 0 : idx + 1)}
+          targetUrl={createPath(number)}
           currentPage={currentPage}
         />
       );
