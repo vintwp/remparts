@@ -7,8 +7,12 @@ import { Menu, X } from 'lucide-react';
 export function MobileMenuTrigger({
   label,
   className,
+  value,
+  onClick,
   ...props
 }: {
+  value: string;
+  onClick: (v: string) => void;
   label?: string;
   className?: string;
 }) {
@@ -38,6 +42,7 @@ export function MobileMenuTrigger({
         </>
       }
       triggerMode="click"
+      onClick={() => onClick(value)}
       {...props}
     >
       {label}

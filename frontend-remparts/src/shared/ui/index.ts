@@ -88,6 +88,16 @@ import {
   DrawerDescription,
 } from './Drawer';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './Dialog';
+
 export {
   Container,
   Button,
@@ -167,4 +177,11 @@ export {
   DrawerTitle,
   DrawerDescription,
   Spinner,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 };

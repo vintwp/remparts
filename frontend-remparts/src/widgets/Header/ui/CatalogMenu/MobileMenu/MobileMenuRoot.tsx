@@ -1,30 +1,62 @@
 'use client';
-import { useState } from 'react';
-import { NavigationMenu, NavigationMenuViewport } from '@/shared/ui';
+import { useLayoutEffect, useState } from 'react';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuViewport,
+} from '@/shared/ui';
 import { cn } from '@/shared/lib/utils';
+import { usePathname } from 'next/navigation';
+import { MobileMenuTrigger } from './MobileMenuTrigger';
 
 type Props = {
-  overlay?: boolean;
   viewportClassName?: string;
   children: React.ReactNode;
 };
 
-export function MobileMenuRoot({ overlay = true, viewportClassName, children }: Props) {
-  const [isOpened, setIsOpened] = useState<boolean>(false);
+export function MobileMenuRoot({ viewportClassName, children }: Props) {
+  const [value, setValue] = useState<string>('');
+  const pathname = usePathname();
+
+  useLayoutEffect(() => {
+    setValue('');
+  }, [pathname]);
 
   return (
     <NavigationMenu
       disableViewport
       orientation="vertical"
-      onValueChange={() => setIsOpened(opened => !opened)}
       className="[&>div]:first:z-10"
+      value={value}
     >
-      {children}
+      <NavigationMenuList>
+        <NavigationMenuItem value="item-1">
+          <MobileMenuTrigger
+            value="item-1"
+            onClick={(itemValue: string) =>
+              setValue(currentValue => (currentValue ? '' : itemValue))
+            }
+          />
+          <NavigationMenuContent onPointerLeave={e => e.preventDefault()}>
+            {children}
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+      </NavigationMenuList>
       <NavigationMenuViewport
         className="mt-0 rounded-none"
-        wrapperClassName={cn('-left-3 w-[calc(100vw-17px)] z-10', viewportClassName)}
+        wrapperClassName={cn(
+          'left-0 w-[calc(100vw-24px)] z-10',
+          'has-[>[data-state=open]]:[&+div]:block',
+          viewportClassName,
+        )}
       />
-      {overlay && isOpened && <div className="fixed inset-0 z-0 bg-black/80" />}
+
+      <div
+        className="fixed inset-0 z-0 hidden bg-black/80"
+        onClick={() => setValue('')}
+      />
     </NavigationMenu>
   );
 }

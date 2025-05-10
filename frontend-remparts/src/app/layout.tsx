@@ -21,8 +21,10 @@ export const metadata: Metadata = {
 // 15.2.4
 
 export default function RootLayout({
+  login,
   children,
 }: Readonly<{
+  login: React.ReactNode;
   children: React.ReactNode;
 }>) {
   return (
@@ -34,6 +36,7 @@ export default function RootLayout({
         <HolyLoader color="rgba(43,94,122,0.6)" />
         <TopHeader />
         <MainHeader className="sticky top-0 z-10 md:static" />
+        {login}
         <main
           className="flex-1"
           id="main"

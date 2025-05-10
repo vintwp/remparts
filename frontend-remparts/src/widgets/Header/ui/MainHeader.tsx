@@ -32,7 +32,7 @@ export function MainHeader({ className }: Props) {
               }
             />
             <ActionIcon
-              href="/profile"
+              href="/login"
               icon={
                 <User
                   size={20}
