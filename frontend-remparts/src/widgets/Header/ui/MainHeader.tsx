@@ -17,7 +17,7 @@ export function MainHeader({ className }: Props) {
           <div className="md:basis-3/12">
             <CatalogMenu />
           </div>
-          <div className="border-0 md:basis-6/12 md:pl-2">
+          <div className="max-w-[400px] grow border-0 md:grow-0 md:basis-6/12 md:pl-2">
             <Search />
           </div>
           <div className="flex gap-1 text-right md:basis-3/12 md:justify-end md:gap-4">

@@ -47,7 +47,8 @@ export function MobileMenuRoot({ viewportClassName, children }: Props) {
       <NavigationMenuViewport
         className="mt-0 rounded-none"
         wrapperClassName={cn(
-          'left-0 w-[calc(100vw-24px)] z-10',
+          'w-[calc(100vw-39px)] z-10',
+          '[&>div]:w-full',
           'has-[>[data-state=open]]:[&+div]:block',
           viewportClassName,
         )}
