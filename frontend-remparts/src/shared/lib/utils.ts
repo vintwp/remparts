@@ -27,3 +27,9 @@ export function createURLSearchParams<T extends number | string>(
 
   return search;
 }
+
+export function validateEmail(email: string) {
+  const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
+
+  return regex.test(email);
+}

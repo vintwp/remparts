@@ -1,6 +1,7 @@
 enum Role {
   ADMIN
   USER
+  MANAGER
 }
 
 model User {
@@ -10,7 +11,7 @@ model User {
   password      String?
   name          String?   
   adress        String?
-  phoneNumber   String?                   @map("phone_number")
+  phoneNumber   String?   @map("phone_number")
   role          Role      @default(USER)
   cart          Cart?
   order         Order[]

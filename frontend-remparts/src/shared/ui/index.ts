@@ -98,6 +98,18 @@ import {
   DialogTrigger,
 } from './Dialog';
 
+import {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+} from './Card';
+
+import { Label } from './Label';
+
 export {
   Container,
   Button,
@@ -184,4 +196,12 @@ export {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+  Label,
 };

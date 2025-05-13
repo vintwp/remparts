@@ -1,5 +1,6 @@
 import slugify from 'slugify';
 import { paginate, cursorPaginate } from './pagination';
+import { ConfigService } from '@nestjs/config';
 
 function createUrl(name: string): string {
   const options = {
@@ -16,4 +17,25 @@ function createUrl(name: string): string {
   return slug;
 }
 
-export { createUrl, paginate, cursorPaginate };
+function removeObjectProperty<
+  T extends Record<string, unknown>,
+  K extends keyof T,
+>(obj: T, keysToDelete: K[]): { [P in Exclude<keyof T, K>]: T[P] } {
+  const res = {} as T;
+
+  for (const prop in obj) {
+    const key = prop as keyof T;
+
+    if (!keysToDelete.includes(key as K)) {
+      res[prop] = obj[prop];
+    }
+  }
+
+  return res;
+}
+
+export const isDev = (configService: ConfigService) => {
+  return configService.getOrThrow('NODE_ENV') === 'development';
+};
+
+export { createUrl, paginate, cursorPaginate, removeObjectProperty };

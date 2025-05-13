@@ -18,6 +18,8 @@ import { HashService } from './hash/hash.service';
 import { HashModule } from './hash/hash.module';
 import { MeiliModule } from './meili/meili.module';
 import { SearchModule } from './search/search.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { SearchModule } from './search/search.module';
     RedisModule,
     HashModule,
     SearchModule,
+    AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService, HashService],
