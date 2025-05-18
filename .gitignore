@@ -17,3 +17,5 @@ dist
 # testing
 test
 
+# temporary
+credentials-development.txt

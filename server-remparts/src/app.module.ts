@@ -13,13 +13,13 @@ import { extendedPrismaClient } from './prisma.extension';
 import { ItemModule } from './item/item.module';
 import { BannerModule } from './banner/banner.module';
 import { RedisModule } from './redis/redis.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { HashService } from './hash/hash.service';
 import { HashModule } from './hash/hash.module';
 import { MeiliModule } from './meili/meili.module';
 import { SearchModule } from './search/search.module';
-import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -45,8 +45,8 @@ import { UserModule } from './user/user.module';
     BannerModule,
     RedisModule,
     HashModule,
-    SearchModule,
     AuthModule,
+    SearchModule,
     UserModule,
   ],
   controllers: [AppController],

@@ -1,23 +1,20 @@
 import {
   ConflictException,
-  ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CustomPrismaService } from 'nestjs-prisma';
-import { ExtendedPrismaClient } from 'src/prisma.extension';
+import { Response, Request } from 'express';
+import ms, { StringValue } from 'ms';
 import * as bcrypt from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { JwtPayload } from './types/jwt.type';
-import { Role } from '@prisma/client';
-import { SignUp } from './dto/signup.dto';
-import { SignIn } from './dto/signin.dto';
-import { Request, Response } from 'express';
-import { isDev } from 'src/lib';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { UserService } from 'src/user/user.service';
+import { ConfigService } from '@nestjs/config';
+import { isDev } from 'src/lib';
+import { GoogleAuthPayload } from './types/googlePayload';
+import { JwtPayload } from './types/jwtPayload';
 
 @Injectable()
 export class AuthService {
@@ -26,170 +23,144 @@ export class AuthService {
   private readonly COOKIE_DOMAIN: string;
 
   constructor(
-    @Inject('PrismaService')
-    private readonly prismaService: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly userService: UserService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    private readonly userService: UserService,
   ) {
-    this.JWT_ACCESS_TOKEN_TTL = this.configService.get('JWT_ACCESS_TOKEN_TTL');
-    this.JWT_REFRESH_TOKEN_TTL = this.configService.get(
-      'JWT_REFRESH_TOKEN_TTL',
-    );
-    this.COOKIE_DOMAIN = this.configService.get('COOKIE_DOMAIN');
+    this.JWT_ACCESS_TOKEN_TTL = this.configService.getOrThrow<string>('JWT_ACCESS_TOKEN_TTL');
+    this.JWT_REFRESH_TOKEN_TTL = this.configService.getOrThrow<string>('JWT_REFRESH_TOKEN_TTL');
+    this.COOKIE_DOMAIN = this.configService.getOrThrow<string>('COOKIE_DOMAIN');
   }
 
-  private generateTokens({
-    id,
-    email,
-    role,
-  }: {
-    id: number;
-    email: string;
-    role: Role;
-  }) {
-    const payload: JwtPayload = { id, email, role };
-
-    const access_token = this.jwtService.sign(payload, {
+  private generateJwtToken(payload: JwtPayload) {
+    const accessToken = this.jwtService.sign(payload, {
       expiresIn: this.JWT_ACCESS_TOKEN_TTL,
     });
 
-    const refresh_token = this.jwtService.sign(payload, {
+    const refreshToken = this.jwtService.sign(payload, {
       expiresIn: this.JWT_REFRESH_TOKEN_TTL,
     });
 
-    return {
-      access_token,
-      refresh_token,
-    };
+    return { accessToken, refreshToken };
   }
 
   private setCookie(
     res: Response,
-    cookie_name: string,
-    value: string,
-    expires: Date,
+    cookieName: string,
+    cookieValue: string,
+    expiresIn: number,
     path?: string,
   ) {
-    res.cookie(cookie_name, value, {
-      httpOnly: true,
+    res.cookie(cookieName, cookieValue, {
       domain: this.COOKIE_DOMAIN,
-      expires,
+      httpOnly: true,
       secure: !isDev(this.configService),
-      sameSite: !isDev(this.configService) ? 'none' : 'lax',
-      path: path || undefined,
+      sameSite: isDev(this.configService) ? 'none' : 'lax',
+      maxAge: expiresIn,
+      path: path || '/',
     });
   }
 
-  private auth(res: Response, { id, email, role }: JwtPayload) {
-    const { access_token, refresh_token } = this.generateTokens({
-      id,
-      email,
-      role,
-    });
-
-    this.setCookie(
-      res,
-      'refresh_token',
-      refresh_token,
-      new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-      '/api/auth/refresh',
-    );
+  private auth(res: Response, user: JwtPayload) {
+    const { accessToken, refreshToken } = this.generateJwtToken(user);
 
     this.setCookie(
       res,
       'access_token',
-      refresh_token,
-      new Date(Date.now() + 1000 * 60 * 15),
+      accessToken,
+      ms(this.JWT_ACCESS_TOKEN_TTL as StringValue),
+      '/api',
     );
-
-    return { access_token };
+    this.setCookie(
+      res,
+      'refresh_token',
+      refreshToken,
+      ms(this.JWT_REFRESH_TOKEN_TTL as StringValue),
+      '/api/auth/refresh',
+    );
   }
 
-  async signin(res: Response, dto: SignIn) {
-    try {
-      const { email, password } = dto;
+  async register(data: RegisterDto) {
+    const isUserExist = await this.userService.getByEmail(data.email);
 
-      const user = await this.userService.getByEmail(email);
-      const isValidPassword = await bcrypt.compare(password, user.password);
-
-      if (!isValidPassword) {
-        throw new NotFoundException('User or Password is incorrect');
-      }
-
-      return this.auth(res, { id: user.id, email, role: user.role });
-    } catch (error) {
-      throw error;
+    if (isUserExist) {
+      throw new ConflictException('User already exist. Please use another email');
     }
+
+    const user = await this.userService.createUser({
+      email: data.email,
+      password: data.password,
+      name: data.name,
+    });
+
+    return user;
   }
 
-  async signup(res: Response, dto: SignUp) {
-    try {
-      const { email, password } = dto;
-      const { id, role } = await this.userService.createUser({
-        email,
-        password,
-      });
+  async login(res: Response, data: LoginDto) {
+    const { email, password } = data;
+    const user = await this.userService.getByEmail(email);
 
-      return this.auth(res, { id, email, role });
-    } catch (error) {
-      throw error;
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
-  }
 
-  async signout(res: Response) {
-    this.setCookie(res, 'refresh_token', '', new Date(0));
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    return true;
+    if (!isPasswordValid) {
+      throw new NotFoundException('User not found');
+    }
+
+    return this.auth(res, { id: user.id, email: user.email, role: user.role });
   }
 
   async refresh(req: Request, res: Response) {
-    const refresh_token = req.cookies['refresh_token'];
+    const refreshToken = req.cookies['refresh_token'];
 
-    if (!refresh_token) {
+    if (!refreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const payload: JwtPayload =
-      await this.jwtService.verifyAsync(refresh_token);
+    const payload: JwtPayload = await this.jwtService.verifyAsync(refreshToken);
 
     if (payload) {
-      const user = await this.prismaService.client.user.findUnique({
-        where: {
-          email: payload.email,
-        },
-        select: {
-          id: true,
-          email: true,
-          role: true,
-        },
-      });
+      const user = await this.userService.getByEmail(payload.email);
 
-      if (!user) {
-        throw new NotFoundException('User was not found');
-      }
+      if (!user) throw new NotFoundException('User not found');
 
-      return this.auth(res, {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      });
+      return this.auth(res, { id: user.id, email: user.email, role: user.role });
     }
   }
 
-  async validate(payload: JwtPayload) {
-    try {
-      const user = await this.userService.getByEmail(payload.email);
+  async logout(res: Response) {
+    this.setCookie(res, 'access_token', '', 0);
+    this.setCookie(res, 'refresh_token', '', 0);
+  }
 
-      if (!user.isVerified) {
-        throw new ForbiddenException(
-          'You are not verified to use the site. Please Contact The Manager',
-        );
-      }
+  async loginForGoogle(userFromGoogle: GoogleAuthPayload, res: Response) {
+    const user = await this.userService.getByEmail(userFromGoogle.email);
 
-      return user;
-    } catch (error) {
-      throw error;
+    if (!user) {
+      await this.userService.createUser({
+        oauthId: userFromGoogle.id,
+        email: userFromGoogle.email,
+        name: userFromGoogle.name,
+      });
+
+      return res.redirect(this.configService.getOrThrow('FRONTEND_URL'));
     }
+
+    return this.auth(res, { id: user.id, email: user.email, role: user.role });
+  }
+
+  async validate(payload: JwtPayload) {
+    const user = await this.userService.getByEmail(payload.email);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const { password, ...result } = user;
+
+    return result;
   }
 }

@@ -6,40 +6,68 @@ import {
   Post,
   Req,
   Res,
+  Get,
+  UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
+import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { SignUp } from './dto/signup.dto';
-import { SignIn } from './dto/signin.dto';
-import { Request, Response } from 'express';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { JwtPayload } from './types/jwtPayload';
+import { IsAuthorized } from './decorators/is-authorized.decorator';
+import { Recaptcha } from '@nestlab/google-recaptcha';
+import { GoogleOAuthGuard } from './guards/google-oauth.guard';
+import { GoogleAuthPayload } from './types/googlePayload';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('/signup')
+  @Recaptcha()
+  @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async signup(@Res({ passthrough: true }) res: Response, @Body() dto: SignUp) {
-    return this.authService.signup(res, dto);
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto);
   }
 
-  @Post('/signin')
+  @Recaptcha()
+  @Post('login')
   @HttpCode(HttpStatus.OK)
-  async signin(@Res({ passthrough: true }) res: Response, @Body() dto: SignIn) {
-    return this.authService.signin(res, dto);
+  async login(@Res({ passthrough: true }) res: Response, @Body() dto: LoginDto) {
+    return this.authService.login(res, dto);
   }
 
-  @Post('/refresh')
+  @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.authService.refresh(req, res);
   }
 
-  @Post('/signout')
+  @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async signout(@Res({ passthrough: true }) res: Response) {
-    return this.authService.signout(res);
+  async logout(@Res({ passthrough: true }) res: Response) {
+    return this.authService.logout(res);
+  }
+
+  @Get('google')
+  @UseGuards(GoogleOAuthGuard)
+  async googleAuth(@Req() req) {}
+
+  @Get('google-redirect')
+  @UseGuards(GoogleOAuthGuard)
+  googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+    if (!req.user) throw new NotFoundException('User not found');
+
+    const user = req.user as GoogleAuthPayload;
+
+    return this.authService.loginForGoogle(user, res);
+  }
+
+  @IsAuthorized()
+  @Get('validate')
+  @HttpCode(HttpStatus.OK)
+  async me(@Req() req: Request) {
+    return this.authService.validate(req.user as JwtPayload);
   }
 }

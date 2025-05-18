@@ -9,11 +9,16 @@ import {
   CardHeader,
   CardTitle,
   Container,
+  Separator,
 } from '@/shared/ui';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FormInputError, FormInputInput, FormInputLabel, FormInputRoot } from '@/shared/component';
+import Image from 'next/image';
+
+import { useRouter } from 'next/navigation';
+import { DOMAIN } from '@/shared/config';
 
 const LoginSchema = z.object({
   email: z.string({ message: 'Введіть вашу email адресу' }).email('Некоректний формат email'),
@@ -21,12 +26,14 @@ const LoginSchema = z.object({
     .string()
     .min(6, 'Довжина паролю повинна більше ніж 4 символи')
     .max(16, 'Довжина паролю повинна бути меншою ніж 16 символів'),
-  captcha: z.string().nonempty('Підтвердіть, що ви не робот'),
+  // captcha: z.string().nonempty('Підтвердіть, що ви не робот'),
 });
 
 type loginSchemaType = z.infer<typeof LoginSchema>;
 
 export function Login() {
+  const router = useRouter();
+
   const {
     control,
     trigger,
@@ -41,6 +48,42 @@ export function Login() {
 
   const onSubmit: SubmitHandler<loginSchemaType> = data => {
     console.log(data);
+  };
+
+  const handleOauth = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+
+    const popup = window.open(
+      'http://localhost:5000/api/auth/google/callback',
+      'Google Auth',
+      'width=500,height=500,_blank',
+    );
+
+    // const handleMessage = (e: MessageEvent<{ type: string }>) => {
+    //   console.log(e, event);
+
+    //   if (e.origin !== DOMAIN) return;
+
+    //   if (e.data?.type === 'oauth-success') {
+    //     if (popup) {
+    //       popup.close();
+    //     }
+    //   }
+
+    //   if (e.data?.type === 'oauth-error') {
+    //     if (popup) {
+    //       popup.close();
+    //     }
+    //   }
+
+    //   router.push('/');
+    //   router.refresh();
+
+    //   // remove message event listener after closing popup
+    //   window.removeEventListener('message', handleMessage);
+    // };
+
+    // window.addEventListener('message', handleMessage);
   };
 
   return (
@@ -106,7 +149,7 @@ export function Login() {
               </Button>
             </div>
 
-            <div className="mt-4 flex justify-center">
+            {/* <div className="mt-4 flex justify-center">
               <Controller
                 name="captcha"
                 control={control}
@@ -120,6 +163,32 @@ export function Login() {
                   />
                 )}
               />
+            </div> */}
+
+            <div className="mt-4">
+              <div className="relative">
+                <Separator />
+                <span
+                  className="text-additional absolute top-1/2 left-1/2 block -translate-x-1/2 -translate-y-1/2 bg-white px-2
+                    text-xs"
+                >
+                  або
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4 w-full hover:bg-transparent hover:text-black/80"
+                onClick={handleOauth}
+              >
+                <Image
+                  src="/icons/google.png"
+                  alt="Google"
+                  width={18}
+                  height={18}
+                />
+                <span>Продовжити через Google</span>
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -16,6 +16,7 @@ model User {
   cart          Cart?
   order         Order[]
   isVerified    Boolean   @default(false) @map("is_verified")
+  id1c          String?   @unique
 
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt      @map("updated_at")
