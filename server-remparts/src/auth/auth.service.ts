@@ -116,6 +116,7 @@ export class AuthService {
     return this.auth(res, { id: user.id, email: user.email, role: user.role });
   }
 
+  //  TODO : access and resfresh token should be valid at once. After refreshing access tokens - refresh token be added to blacklist in redis (with expiration time)
   async refresh(req: Request, res: Response) {
     const refreshToken = req.cookies['refresh_token'];
 

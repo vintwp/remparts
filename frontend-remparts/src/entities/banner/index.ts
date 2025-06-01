@@ -1,4 +1,3 @@
 import { type Banner } from './model';
-import { getBanners } from './api';
 
-export { type Banner, getBanners };
+export { type Banner };

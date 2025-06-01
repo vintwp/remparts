@@ -3,7 +3,6 @@ import Link from 'next/link';
 
 import { Banner } from '@/entities/banner';
 
-import { BACKEND_DOMAIN } from '@/shared/config';
 import { CarouselItem } from '@/shared/ui';
 
 type Props = {
@@ -19,7 +18,7 @@ export function CarouselSlide({ banner }: Props) {
       <Link href={banner.targetUrl}>
         <Image
           alt={banner.targetUrl}
-          src={`${BACKEND_DOMAIN}/${banner.imageUrl}`}
+          src={banner.imageUrl}
           objectFit="cover"
           fill
         />

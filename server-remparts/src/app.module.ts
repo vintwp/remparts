@@ -11,7 +11,6 @@ import { CategoryModule } from './category/category.module';
 import { CustomPrismaModule } from 'nestjs-prisma';
 import { extendedPrismaClient } from './prisma.extension';
 import { ItemModule } from './item/item.module';
-import { BannerModule } from './banner/banner.module';
 import { RedisModule } from './redis/redis.module';
 import { ConfigModule } from '@nestjs/config';
 import { HashService } from './hash/hash.service';
@@ -42,7 +41,6 @@ import { MailModule } from './mail/mail.module';
     DepartmentModule,
     CategoryModule,
     ItemModule,
-    BannerModule,
     RedisModule,
     HashModule,
     AuthModule,

@@ -19,7 +19,7 @@ type TResponseUser = {
 };
 
 // TODO add token rotation
-
+// TODO add logout
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
