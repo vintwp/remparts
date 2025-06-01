@@ -1,4 +1,4 @@
 import fetch from './fetch';
-import { type FetchApi, ErrorApi } from './types';
+import { FetchError, type FetchResponse, FetchSuccess } from './types';
 
-export { fetch, type FetchApi, ErrorApi };
+export { fetch, type FetchResponse, type FetchError, type FetchSuccess };

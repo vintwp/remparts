@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -32,4 +32,12 @@ export function validateEmail(email: string) {
   const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g;
 
   return regex.test(email);
+}
+
+export async function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export function isDev() {
+  return process.env.NODE_ENV === 'development';
 }

@@ -9,6 +9,7 @@ import {
   Get,
   UseGuards,
   NotFoundException,
+  Param,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
@@ -19,10 +20,14 @@ import { IsAuthorized } from './decorators/is-authorized.decorator';
 import { Recaptcha } from '@nestlab/google-recaptcha';
 import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import { GoogleAuthPayload } from './types/googlePayload';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Recaptcha()
   @Post('register')
@@ -57,11 +62,20 @@ export class AuthController {
   @Get('google-redirect')
   @UseGuards(GoogleOAuthGuard)
   googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
-    if (!req.user) throw new NotFoundException('User not found');
+    if (!req.user) {
+      throw new NotFoundException('User not found');
+    }
 
     const user = req.user as GoogleAuthPayload;
 
     return this.authService.loginForGoogle(user, res);
+  }
+
+  @Get('callback/:hash')
+  async loginCallback(@Param('hash') hash: string) {
+    const response = await this.authService.loginCallback(hash);
+
+    return response;
   }
 
   @IsAuthorized()

@@ -1,25 +1,17 @@
-class ErrorApi extends Error {
-  public readonly status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.status = status;
-    this.name = 'ErrorApi';
-    Object.setPrototypeOf(this, ErrorApi.prototype);
-  }
-}
-
-type FetchOk<T> = {
+type FetchSuccess<T> = {
   ok: true;
   data: T;
   message?: string;
 };
 
-type FetchNoOk = {
+type FetchError = {
   ok: false;
   status: number;
   message: string;
 };
 
-type FetchApi<T> = FetchOk<T> | FetchNoOk;
+type FetchResponse<T> = FetchSuccess<T> | FetchError;
 
-export { type FetchApi, ErrorApi };
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
+export type { FetchResponse, FetchSuccess, FetchError, JsonValue };

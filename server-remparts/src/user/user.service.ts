@@ -46,6 +46,15 @@ export class UserService {
     });
   }
 
+  async updateUser(email: string, data: Partial<User>) {
+    return await this.prismaService.client.user.update({
+      where: {
+        email,
+      },
+      data,
+    });
+  }
+
   async getAllUsers() {
     return await this.prismaService.client.user.findMany();
   }

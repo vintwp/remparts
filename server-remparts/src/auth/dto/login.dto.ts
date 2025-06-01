@@ -9,6 +9,6 @@ export class LoginDto {
   @IsString({ message: 'Password should be a string' })
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(6, { message: 'Password should not less than 6 symbols' })
-  @MaxLength(16, { message: 'Password should not be longer than 16 symbols' })
+  @MaxLength(32, { message: 'Password should not be longer than 32 symbols' })
   password: string;
 }

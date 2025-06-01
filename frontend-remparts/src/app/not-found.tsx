@@ -1,11 +1,12 @@
+import Link from 'next/link';
+
 import { cn } from '@/shared/lib/utils';
 import { Button, Container } from '@/shared/ui';
-import Link from 'next/link';
 
 export default function NotFound() {
   return (
     <Container className='bg-["#f5f5f5"]'>
-      <div className="min-h-[50vh] pt-8 pb-16 md:pt-16 md:pb-32">
+      <div className="min-h-[50vh] overflow-hidden pt-8 pb-16 md:pt-16 md:pb-32">
         <div className="relative">
           <h2
             className={cn(

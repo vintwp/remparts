@@ -1,8 +1,9 @@
 /* eslint-disable import/no-anonymous-default-export */
-import { ErrorApi, type FetchApi } from './types';
+import { ErrorApi } from './error';
+import { FetchResponse, JsonValue } from './types';
 
 class Fetch {
-  async getData<T>(url: string, config: RequestInit = {}): Promise<FetchApi<T>> {
+  async getData<T>(url: string, config: RequestInit = {}): Promise<FetchResponse<T>> {
     return fetch(url, { method: 'GET', ...config })
       .then(async response => {
         if (!response.ok) {
@@ -27,33 +28,58 @@ class Fetch {
       });
   }
 
-  async postData<T, K = Record<string, unknown>>(
+  async postData<T, K = Record<string, JsonValue>>(
     url: string,
     body: K,
     config: RequestInit = {},
-  ): Promise<FetchApi<T>> {
-    return fetch(url, { method: 'POST', body: JSON.stringify(body), ...config })
-      .then(async response => {
-        if (!response.ok) {
-          throw new ErrorApi(response.statusText, response.status);
+  ): Promise<FetchResponse<T>> {
+    try {
+      const { headers, ...restConfig } = config;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(headers || {}),
+        },
+        body: JSON.stringify(body),
+        ...restConfig,
+      });
+
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+          const error = await response.json();
+          throw new ErrorApi(error.message || 'Unexpected internal error', response.status);
         }
 
-        return response.json().then(data => ({ data, message: response.statusText }));
-      })
-      .then(data => {
+        throw new ErrorApi('Unexpected internal error', response.status);
+      }
+
+      const contentType = response.headers.get('content-type');
+
+      if (!contentType || !contentType.includes('application/json')) {
         return {
           ok: true as const,
-          data: data.data as T,
-          message: data.message,
+          data: null as T,
         };
-      })
-      .catch(error => {
-        if (error instanceof ErrorApi) {
-          return { ok: false, status: error.status, message: error.message };
-        } else {
-          return { ok: false, status: 500, message: 'Unexpected internal error' };
-        }
-      });
+      }
+
+      const data = await response.json();
+
+      return {
+        ok: true as const,
+        data: data as T,
+        message: data.message,
+      };
+    } catch (error) {
+      if (error instanceof ErrorApi) {
+        return { ok: false, status: error.status, message: error.message };
+      } else {
+        return { ok: false, status: 500, message: 'Unexpected internal error' };
+      }
+    }
   }
 }
 

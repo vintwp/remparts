@@ -1,9 +1,10 @@
 import Image from 'next/image';
+import Link from 'next/link';
+
+import { BACKEND_DOMAIN } from '@/shared/config';
 import { cn } from '@/shared/lib/utils';
 import { Category } from '@/shared/types';
-import { DOMAIN } from '@/shared/config';
 import { Button } from '@/shared/ui';
-import Link from 'next/link';
 
 type Props = {
   category: Category;
@@ -21,7 +22,7 @@ export function CategoryCard({ category, departmentUrl }: Props) {
       <div className="flex h-[100px] w-full items-center justify-center overflow-hidden bg-gray-50 md:h-[150px]">
         <div className="relative h-[calc(100%-16px)] w-[calc(100%-16px)]">
           <Image
-            src={`${DOMAIN}/${category.image}`}
+            src={`${BACKEND_DOMAIN}/${category.image}`}
             alt={category.name}
             fill
             style={{ objectFit: 'contain' }}

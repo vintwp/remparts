@@ -5,6 +5,8 @@ import { CarouselRoot } from './CarouselRoot';
 export async function Banner() {
   const banner = await getBanners();
 
+  //TODO transfer banner images to client
+
   return (
     <div className="flex">
       <div className="shrink-0 grow-0 basis-0 md:basis-3/12" />

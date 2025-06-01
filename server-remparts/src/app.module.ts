@@ -20,6 +20,7 @@ import { MeiliModule } from './meili/meili.module';
 import { SearchModule } from './search/search.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -34,7 +35,6 @@ import { AuthModule } from './auth/auth.module';
       },
     }),
     ConfigModule.forRoot({ isGlobal: true }),
-
     MeiliModule,
     ScheduleModule.forRoot(),
     PriceModule,
@@ -48,6 +48,7 @@ import { AuthModule } from './auth/auth.module';
     AuthModule,
     SearchModule,
     UserModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService, HashService],

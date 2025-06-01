@@ -1,20 +1,27 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
-import ms, { StringValue } from 'ms';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UserService } from 'src/user/user.service';
 import { ConfigService } from '@nestjs/config';
-import { isDev } from 'src/lib';
+import { isDev } from 'src/lib/utils';
 import { GoogleAuthPayload } from './types/googlePayload';
 import { JwtPayload } from './types/jwtPayload';
+import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
+import { cookiePath, type CookieName } from './types/cookie';
+import { errorsDescription } from './config/errorsDescription';
+import { v4 as uuidv4 } from 'uuid';
+import Redis from 'ioredis';
+import { User } from '@prisma/client';
+import { error } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +33,8 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly emailConfirmationService: EmailConfirmationService,
+    @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
   ) {
     this.JWT_ACCESS_TOKEN_TTL = this.configService.getOrThrow<string>('JWT_ACCESS_TOKEN_TTL');
     this.JWT_REFRESH_TOKEN_TTL = this.configService.getOrThrow<string>('JWT_REFRESH_TOKEN_TTL');
@@ -44,56 +53,44 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private setCookie(
-    res: Response,
-    cookieName: string,
-    cookieValue: string,
-    expiresIn: number,
-    path?: string,
-  ) {
+  private setCookie(res: Response, cookieName: CookieName, cookieValue: string, expiresIn: number) {
     res.cookie(cookieName, cookieValue, {
       domain: this.COOKIE_DOMAIN,
       httpOnly: true,
-      secure: !isDev(this.configService),
       sameSite: isDev(this.configService) ? 'none' : 'lax',
+      secure: false,
       maxAge: expiresIn,
-      path: path || '/',
+      path: cookiePath[cookieName] || '/',
     });
   }
 
   private auth(res: Response, user: JwtPayload) {
     const { accessToken, refreshToken } = this.generateJwtToken(user);
 
-    this.setCookie(
-      res,
-      'access_token',
-      accessToken,
-      ms(this.JWT_ACCESS_TOKEN_TTL as StringValue),
-      '/api',
-    );
-    this.setCookie(
-      res,
-      'refresh_token',
-      refreshToken,
-      ms(this.JWT_REFRESH_TOKEN_TTL as StringValue),
-      '/api/auth/refresh',
-    );
+    return {
+      user: { email: user.email, role: user.role },
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   }
 
   async register(data: RegisterDto) {
     const isUserExist = await this.userService.getByEmail(data.email);
 
     if (isUserExist) {
-      throw new ConflictException('User already exist. Please use another email');
+      throw new ConflictException(errorsDescription.auth.register.exist.ua);
     }
 
     const user = await this.userService.createUser({
       email: data.email,
       password: data.password,
-      name: data.name,
     });
 
-    return user;
+    await this.emailConfirmationService.sendVerificationToken(user);
+
+    return {
+      message: errorsDescription.auth.register.success.ua,
+    };
   }
 
   async login(res: Response, data: LoginDto) {
@@ -101,13 +98,19 @@ export class AuthService {
     const user = await this.userService.getByEmail(email);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(errorsDescription.auth.login.notFound.ua);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(errorsDescription.auth.login.notFound.ua);
+    }
+
+    if (!user.isVerified) {
+      await this.emailConfirmationService.sendVerificationToken(user);
+
+      throw new UnauthorizedException(errorsDescription.auth.login.unverified.ua);
     }
 
     return this.auth(res, { id: user.id, email: user.email, role: user.role });
@@ -137,19 +140,59 @@ export class AuthService {
   }
 
   async loginForGoogle(userFromGoogle: GoogleAuthPayload, res: Response) {
+    const HASH_TTL = 180;
+
+    const hash = uuidv4();
     const user = await this.userService.getByEmail(userFromGoogle.email);
 
+    if (user && !user.oauthId) {
+      await this.userService.updateUser(user.email, { oauthId: userFromGoogle.id });
+    }
+
+    if (user && user.oauthId !== userFromGoogle.id) {
+      const error = encodeURIComponent(errorsDescription.auth.login.oAuthError.ua);
+
+      return res.redirect(
+        `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/callback?error=${error}`,
+      );
+    }
+
     if (!user) {
-      await this.userService.createUser({
+      const { id, email, role } = await this.userService.createUser({
         oauthId: userFromGoogle.id,
         email: userFromGoogle.email,
         name: userFromGoogle.name,
+        isVerified: true,
       });
 
-      return res.redirect(this.configService.getOrThrow('FRONTEND_URL'));
+      await this.redisClient.setex(hash, HASH_TTL, JSON.stringify({ id, email, role }));
+
+      return res.redirect(
+        `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/callback?token=${hash}`,
+      );
     }
 
-    return this.auth(res, { id: user.id, email: user.email, role: user.role });
+    await this.redisClient.setex(
+      hash,
+      HASH_TTL,
+      JSON.stringify({ id: user.id, email: user.email, role: user.role }),
+    );
+
+    return res.redirect(
+      `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/callback?token=${hash}`,
+    );
+  }
+
+  async loginCallback(hash: string) {
+    const userFromRedis = await this.redisClient.get(hash);
+
+    if (!userFromRedis) throw new NotFoundException('Hash is wrong or expired');
+
+    const { id, email, role } = JSON.parse(userFromRedis) as Pick<User, 'id' | 'email' | 'role'>;
+
+    await this.redisClient.del(hash);
+
+    return this.auth(null, { id, email, role });
   }
 
   async validate(payload: JwtPayload) {

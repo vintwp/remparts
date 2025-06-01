@@ -1,0 +1,14 @@
+enum TokenType {
+  VERIFICATION
+  RECOVERY_PASSWORD
+}
+
+model EmailToken {
+  id            Int       @id @default(autoincrement())
+  email         String
+  token         String    @unique
+  tokenType     TokenType @map("token_type")
+  expiresIn     DateTime  @map("expires_in")
+
+  @@map("email_token")
+}

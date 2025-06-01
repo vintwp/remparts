@@ -1,18 +1,25 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { auth } from '@/shared/config/auth';
 
-// This function can be marked `async` if using `await` inside
-const protectedRoutes = ['/api'];
-const publicRoutes = ['/'];
+const ADMIN_ROUTES = ['/api/admin'];
 
-export function middleware(request: NextRequest) {
-  console.log('✅ Middleware triggered on:', request.nextUrl.pathname);
-  return NextResponse.next();
+export default auth(req => {
+  const requestedUrl = req.nextUrl.pathname;
+  const session = req.auth;
+  const role = session?.user?.role;
 
-  // return NextResponse.redirect(new URL('/', request.url));
-}
+  if (!session && req.nextUrl.pathname !== '/api/login') {
+    const newUrl = new URL('/api/login', req.nextUrl.origin);
+    return Response.redirect(newUrl);
+  }
 
-// See "Matching Paths" below to learn more
+  if (session && ADMIN_ROUTES.includes(requestedUrl) && role !== 'ADMIN') {
+    const newUrl = new URL('/forbidden', req.nextUrl.origin);
+    return Response.redirect(newUrl);
+  }
+});
+
 export const config = {
-  matcher: ['/api/:path((?!signin$|signup$).*)'],
+  matcher: [
+    '/api/:path((?!register$|auth/callback$|auth/confirmation(?:/.*)?$|auth/recovery(?:/.*)?$).*)',
+  ],
 };

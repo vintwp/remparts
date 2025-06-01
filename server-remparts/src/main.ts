@@ -17,7 +17,6 @@ async function bootstrap() {
   app.enableCors({
     origin: configService.getOrThrow<string>('FRONTEND_URL'),
     credentials: true,
-    exposedHeaders: ['set-cookie'],
   });
 
   await app.listen(PORT, () => console.log(`SERVER STARTED ON PORT = ${PORT}`));

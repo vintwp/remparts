@@ -6,7 +6,7 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '../prisma.extension';
 import { Item } from '@prisma/client';
 import { Sort } from './types';
-import { paginate } from 'src/lib';
+import { paginate } from 'src/lib/utils';
 
 @Injectable()
 export class ItemService {
@@ -66,7 +66,7 @@ export class ItemService {
       stock?: boolean;
     },
   ) {
-    const filteredItems = [...items].filter((item) => {
+    const filteredItems = [...items].filter(item => {
       let shouldBeAdded = true;
 
       // check for brand condition
@@ -116,10 +116,7 @@ export class ItemService {
     return sortedItems;
   }
 
-  private paginateItems(
-    items: Item[],
-    { page, perPage }: { page?: number; perPage?: number },
-  ) {
+  private paginateItems(items: Item[], { page, perPage }: { page?: number; perPage?: number }) {
     const LIMIT_MAX_PRODUCT_BY_REQUEST = 300;
     const LIMIT_DEFAULT_PRODUCT_BY_REQUEST = 20;
 
@@ -146,13 +143,7 @@ export class ItemService {
   createResponseItems(
     items: Item[],
     {
-      filterOptions: {
-        categoryId = [],
-        brandId = [],
-        qualityId = [],
-        complianceId = [],
-        stock,
-      },
+      filterOptions: { categoryId = [], brandId = [], qualityId = [], complianceId = [], stock },
       page,
       perPage,
       sortKey,
@@ -181,13 +172,10 @@ export class ItemService {
 
     // paginate array of products (sorted, filtered)
 
-    const { items: itemsPaginated, pagination } = this.paginateItems(
-      sortedItemsBySort,
-      {
-        page,
-        perPage,
-      },
-    );
+    const { items: itemsPaginated, pagination } = this.paginateItems(sortedItemsBySort, {
+      page,
+      perPage,
+    });
 
     return {
       items: itemsPaginated,
@@ -231,11 +219,7 @@ export class ItemService {
         },
       });
 
-      await this.redisClient.setex(
-        cacheKeyRedis,
-        14400,
-        JSON.stringify(itemsByCategory),
-      );
+      await this.redisClient.setex(cacheKeyRedis, 14400, JSON.stringify(itemsByCategory));
     }
 
     // #region old filtering and sorting TO DELETE

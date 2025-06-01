@@ -1,9 +1,11 @@
 import Image from 'next/image';
-import { Item as IItem } from '@/shared/types';
-import { DOMAIN } from '@/shared/config';
-import { StockLabel } from './StockLabel';
-import { Button } from '@/shared/ui';
+
+import { BACKEND_DOMAIN } from '@/shared/config';
 import { cn } from '@/shared/lib/utils';
+import { Item as IItem } from '@/shared/types';
+import { Button } from '@/shared/ui';
+
+import { StockLabel } from './StockLabel';
 
 type Props = {
   item: IItem;
@@ -20,7 +22,7 @@ export function Item({ item }: Props) {
       <div className="-z-1 basis-3/12 overflow-hidden rounded-tl-sm rounded-bl-sm pt-2 md:basis-1/12">
         <Image
           alt={item.name}
-          src={`${DOMAIN}/${item.images[0].link}`}
+          src={`${BACKEND_DOMAIN}/${item.images[0].link}`}
           width={110}
           height={110}
         />
