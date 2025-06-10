@@ -22,11 +22,17 @@ const initialItems: InitialItemsJson = itemsJson;
 
 export async function createItems() {
   for (const item of initialItems.items) {
+    const roundPrice = (price: number) => +price.toFixed(2);
+    const priceInUsd = roundPrice(item.price / 42);
+
     await prisma.item.create({
       data: {
         dbId: item.item_id,
         name: item.name,
-        price: item.price,
+        price: priceInUsd,
+        priceWholesaleBasic: roundPrice(priceInUsd * 0.9),
+        priceWholesaleStandard: roundPrice(priceInUsd * 0.85),
+        priceWholesaleTop: roundPrice(priceInUsd * 0.75),
         stock: Math.round(Math.random() * 1),
         department: {
           connect: {

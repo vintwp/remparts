@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
-import { Category } from '@prisma/client';
+import { Category, CustomerPriceTier } from '@prisma/client';
 import Redis from 'ioredis';
 import { ItemService } from 'src/item/item.service';
 import { MeiliService } from 'src/meili/meili.service';
@@ -19,6 +19,7 @@ export class SearchService implements OnApplicationBootstrap {
     perPage?: number,
     stock?: boolean,
     sortKey?: string,
+    customerPriceTier: CustomerPriceTier = 'RETAIL',
   ) {
     const findedItems = await this.meiliService.globalSearch(query);
 
@@ -27,8 +28,7 @@ export class SearchService implements OnApplicationBootstrap {
       .reduce(
         (total, itm) => {
           const { id } = itm.category;
-          const isCategoryExists =
-            total.findIndex((cat) => cat.id === id) !== -1;
+          const isCategoryExists = total.findIndex(cat => cat.id === id) !== -1;
 
           if (isCategoryExists) {
             return total;
@@ -42,21 +42,23 @@ export class SearchService implements OnApplicationBootstrap {
       )
       .sort((cat1, cat2) => cat1.name.localeCompare(cat2.name));
 
-    const { items, pagination } = this.itemService.createResponseItems(
-      findedItems,
-      {
-        filterOptions: {
-          categoryId: category ? [category] : undefined,
-          stock,
-        },
-        page,
-        perPage,
-        sortKey,
+    const { items, pagination } = this.itemService.createResponseItems(findedItems, {
+      filterOptions: {
+        categoryId: category ? [category] : undefined,
+        stock,
       },
+      page,
+      perPage,
+      sortKey,
+    });
+
+    const mappedItemsWithTierPrice = this.itemService.mapItemsWithTierPrice(
+      items,
+      customerPriceTier,
     );
 
     return {
-      items,
+      items: mappedItemsWithTierPrice,
       pagination,
       categories,
     };
@@ -65,17 +67,17 @@ export class SearchService implements OnApplicationBootstrap {
   async intitialize() {
     const items = await this.itemService.getAll();
     const itemNamesWithNumberCombinations = items
-      .map((itm) => itm.name)
-      .filter((itmName) => /\d/.test(itmName));
+      .map(itm => itm.name)
+      .filter(itmName => /\d/.test(itmName));
 
     const uniqueNumbers = Array.from(
       new Set(
         itemNamesWithNumberCombinations
-          .map((name) => {
+          .map(name => {
             const nameString = name
               .split(' ')
-              .map((word) => word.replaceAll(/[()\\\/]/g, ''))
-              .filter((word) => /\d/.test(word));
+              .map(word => word.replaceAll(/[()\\\/]/g, ''))
+              .filter(word => /\d/.test(word));
 
             return nameString;
           })
@@ -85,14 +87,7 @@ export class SearchService implements OnApplicationBootstrap {
 
     await this.meiliService.addToGlobalSearch(items);
     await this.meiliService.updateSettings({
-      rankingRules: [
-        'exactness',
-        'words',
-        'proximity',
-        'attribute',
-        'typo',
-        'sort',
-      ],
+      rankingRules: ['exactness', 'words', 'proximity', 'attribute', 'typo', 'sort'],
       typoTolerance: {
         disableOnWords: uniqueNumbers,
       },

@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation';
-import { getDepartmentByUrl } from '@/entities/department';
+
 import { CategoryCard } from '@/entities/category';
+import { getDepartmentByUrl } from '@/entities/department';
+
 import { type Category, type Department } from '@/shared/types';
+
 import { Breadcrumbs, CategoriesList } from './ui';
 
 type Params = {

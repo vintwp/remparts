@@ -1,7 +1,3 @@
-import { Role } from '@prisma/client';
+import { TJwtUser } from 'src/types';
 
-export type JwtPayload = {
-  id: number;
-  email: string;
-  role: Role;
-};
+export type JwtPayload = TJwtUser;

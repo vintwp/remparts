@@ -2,10 +2,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'nestjs-prisma';
-import { Category } from '@prisma/client';
+import { Category, CustomerPriceTier } from '@prisma/client';
 import { ItemService } from 'src/item/item.service';
 import { TResponseCategoryByUrl } from './types';
 import Redis from 'ioredis';
+import { priceTierToProductParam } from 'src/types';
 
 const SECONDS_PER_HOUR = 3600;
 
@@ -41,6 +42,7 @@ export class CategoryService {
     perPage?: number,
     sortBy?: string,
     stock?: boolean,
+    customerPriceTier: CustomerPriceTier = 'RETAIL',
   ): Promise<any> {
     const cacheKeyRedis = url;
 
@@ -62,18 +64,12 @@ export class CategoryService {
         },
       });
 
-      await this.redisClient.setex(
-        cacheKeyRedis,
-        SECONDS_PER_HOUR * 48,
-        JSON.stringify(category),
-      );
+      await this.redisClient.setex(cacheKeyRedis, SECONDS_PER_HOUR * 48, JSON.stringify(category));
     }
 
     // assign cached category
     if (categoryFromRedis) {
-      category = JSON.parse(
-        categoryFromRedis,
-      ) as TResponseCategoryByUrl['category'];
+      category = JSON.parse(categoryFromRedis) as TResponseCategoryByUrl['category'];
     }
 
     const itemsByCategory = await this.itemService.getByParams(
@@ -87,7 +83,15 @@ export class CategoryService {
       stock,
     );
 
-    return { category, itemsByCategory };
+    const mappedItemsWithTierPrice = this.itemService.mapItemsWithTierPrice(
+      itemsByCategory.items,
+      customerPriceTier,
+    );
+
+    return {
+      category,
+      itemsByCategory: { items: mappedItemsWithTierPrice, pagination: itemsByCategory.pagination },
+    };
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {

@@ -10,11 +10,16 @@ import {
   HttpStatus,
   ParseIntPipe,
   ParseBoolPipe,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ParseIntArray } from 'src/pipes/parse-int-array';
+import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt-auth.guard';
+import { TJwtUser } from 'src/types';
 
 @Controller('category')
 export class CategoryController {
@@ -30,6 +35,7 @@ export class CategoryController {
     return this.categoryService.getAll();
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':categoryUrl')
   getByUrl(
     @Param('categoryUrl')
@@ -84,7 +90,11 @@ export class CategoryController {
     stock: boolean,
     @Query('sortBy')
     sortBy: string,
+    @Req() req: Request,
   ) {
+    const user = req.user || null;
+    const customerPriceTier = user ? (user as TJwtUser).customerPriceTier : 'RETAIL';
+
     return this.categoryService.getByUrl(
       categoryUrl,
       brand,
@@ -94,14 +104,12 @@ export class CategoryController {
       perPage,
       sortBy,
       stock,
+      customerPriceTier,
     );
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateCategoryDto: UpdateCategoryDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
     return this.categoryService.update(+id, updateCategoryDto);
   }
 

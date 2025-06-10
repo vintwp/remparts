@@ -20,6 +20,7 @@ import { SearchModule } from './search/search.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
+import { CurrencyModule } from './currency/currency.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { MailModule } from './mail/mail.module';
     SearchModule,
     UserModule,
     MailModule,
+    CurrencyModule,
   ],
   controllers: [AppController],
   providers: [AppService, HashService],

@@ -1,12 +1,16 @@
-import { getCategoryByUrl } from '@/entities/category';
-import { Breadcrumbs } from './ui/Breadcrumbs';
-import { getCategories } from '@/entities/category';
 import { notFound } from 'next/navigation';
-import { FilterBy, Pagination } from '@/features';
+
+import { getCategoryByUrl } from '@/entities/category';
+import { getCategories } from '@/entities/category';
+
+import { auth } from '@/shared/config/auth';
 import { createURLSearchParams } from '@/shared/lib/utils';
-import { ItemsList } from './ui/ItemsList';
-import { Separator } from '@/shared/ui';
+
+import { Breadcrumbs } from './ui/Breadcrumbs';
 import { ControlPanel } from './ui/ControlPanel';
+import { ItemsList } from './ui/ItemsList';
+import { RefineSearch } from './ui/RefineSearch';
+import { Pagination } from '@/features';
 
 type Props = {
   params: Promise<{ categorySlug: string; departmentSlug: string }>;
@@ -32,6 +36,7 @@ export async function generateStaticParams() {
 }
 
 export default async function Page({ params, searchParams }: Props) {
+  const authorized = await auth();
   const { categorySlug } = await params;
   const searchParamsAsync = await searchParams;
   const currentPage = searchParamsAsync.page as string;
@@ -42,7 +47,11 @@ export default async function Page({ params, searchParams }: Props) {
     })
     .join('&');
 
-  const categoryExtendedData = await getCategoryByUrl(categorySlug, searchParamsForRequest);
+  const categoryExtendedData = await getCategoryByUrl(categorySlug, searchParamsForRequest, {
+    headers: {
+      Authorization: `Bearer ${authorized?.access_token}`,
+    },
+  });
 
   if (!categoryExtendedData.ok) {
     notFound();
@@ -58,38 +67,11 @@ export default async function Page({ params, searchParams }: Props) {
       />
       <h1 className="my-3 text-3xl font-bold">{category.name}</h1>
       <div className="flex gap-2">
-        <div
-          className="sticky top-1 hidden h-max shrink-0 grow-0 basis-0 space-y-4 rounded-sm bg-neutral-50 py-3 md:block
-            md:basis-1/3"
-        >
-          <FilterBy
-            showCommand
-            title="Бренд"
-            searchParameter="brand"
-            filterProperties={category.brand}
-          />
-          <div className="px-4">
-            <Separator />
-          </div>
-          {category.quality.length ? (
-            <>
-              <FilterBy
-                title="Якість"
-                searchParameter="quality"
-                filterProperties={category.quality}
-              />
-            </>
-          ) : null}
-          {category.complianceWith.length ? (
-            <>
-              <FilterBy
-                title="Сумісно з"
-                searchParameter="complianceWith"
-                filterProperties={category.complianceWith}
-              />
-            </>
-          ) : null}
-        </div>
+        <RefineSearch
+          brand={category.brand}
+          quality={category.quality}
+          complianceWith={category.complianceWith}
+        />
         <div className="basis-full md:basis-2/3">
           <div className="mb-2">
             <ControlPanel category={category} />

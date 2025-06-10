@@ -1,10 +1,11 @@
-import { Container } from '@/shared/ui';
 import { ArticleShortDescription, Features } from '@/widgets/(LandingPage)';
 import { Banner } from '@/widgets/Banner';
 
+import { Container } from '@/shared/ui';
+
 export default async function Home() {
   return (
-    <div>
+    <>
       <Container>
         <div className="-mx-3 md:mx-0">
           <Banner />
@@ -12,6 +13,6 @@ export default async function Home() {
       </Container>
       <Features />
       <ArticleShortDescription />
-    </div>
+    </>
   );
 }

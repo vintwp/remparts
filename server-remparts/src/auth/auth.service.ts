@@ -21,7 +21,6 @@ import { errorsDescription } from './config/errorsDescription';
 import { v4 as uuidv4 } from 'uuid';
 import Redis from 'ioredis';
 import { User } from '@prisma/client';
-import { error } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -113,7 +112,12 @@ export class AuthService {
       throw new UnauthorizedException(errorsDescription.auth.login.unverified.ua);
     }
 
-    return this.auth(res, { id: user.id, email: user.email, role: user.role });
+    return this.auth(res, {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      customerPriceTier: user.customerPriceTier,
+    });
   }
 
   //  TODO : access and resfresh token should be valid at once. After refreshing access tokens - refresh token be added to blacklist in redis (with expiration time)
@@ -131,7 +135,12 @@ export class AuthService {
 
       if (!user) throw new NotFoundException('User not found');
 
-      return this.auth(res, { id: user.id, email: user.email, role: user.role });
+      return this.auth(res, {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        customerPriceTier: user.customerPriceTier,
+      });
     }
   }
 
@@ -189,11 +198,14 @@ export class AuthService {
 
     if (!userFromRedis) throw new NotFoundException('Hash is wrong or expired');
 
-    const { id, email, role } = JSON.parse(userFromRedis) as Pick<User, 'id' | 'email' | 'role'>;
+    const { id, email, role, customerPriceTier } = JSON.parse(userFromRedis) as Pick<
+      User,
+      'id' | 'email' | 'role' | 'customerPriceTier'
+    >;
 
     await this.redisClient.del(hash);
 
-    return this.auth(null, { id, email, role });
+    return this.auth(null, { id, email, role, customerPriceTier });
   }
 
   async validate(payload: JwtPayload) {

@@ -1,5 +1,5 @@
 model ExchangeRate {
-  id    Int @id @default(autoincrement()) @map("exchangerate_id")
+  id    Int @id @default(1) @map("exchangerate_id")
   value Float @default(1.0)
 
   @@map("exchange_rate")

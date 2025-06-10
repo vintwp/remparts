@@ -4,22 +4,29 @@ enum Role {
   MANAGER
 }
 
-model User {
-  id            Int       @id @default(autoincrement())
-  oauthId       String?   @unique
-  email         String    @unique
-  password      String?
-  name          String?   
-  adress        String?
-  phoneNumber   String?   @map("phone_number")
-  role          Role      @default(USER)
-  cart          Cart?
-  order         Order[]
-  isVerified    Boolean   @default(false) @map("is_verified")
-  id1c          String?   @unique
+enum CustomerPriceTier {
+  WHOLESALE_TOP
+  WHOLESALE_STANDARD
+  WHOLESALE_BASIC
+  RETAIL    
+}
 
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt      @map("updated_at")
+model User {
+  id                  Int       @id @default(autoincrement())
+  oauthId             String?   @unique
+  email               String    @unique
+  password            String?
+  name                String?   
+  adress              String?
+  phoneNumber         String?   @map("phone_number")
+  role                Role      @default(USER)
+  cart                Cart?
+  order               Order[]
+  isVerified          Boolean   @default(false) @map("is_verified")
+  id1c                String?   @unique
+  customerPriceTier   CustomerPriceTier @default(RETAIL) @map("customer_price_tier")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt      @map("updated_at")
 
   @@map("user")
 }

@@ -1,4 +1,4 @@
-import { Item } from '@prisma/client';
+import { Item, CustomerPriceTier, User } from '@prisma/client';
 
 type TPagination = {
   isFirstPage: boolean;
@@ -10,10 +10,26 @@ type TPagination = {
   totalCount: number;
 };
 
+type PriceTierToProductParam = {
+  [key in CustomerPriceTier]: keyof Pick<
+    Item,
+    'priceWholesaleBasic' | 'priceWholesaleStandard' | 'priceWholesaleTop' | 'price'
+  >;
+};
+
+const priceTierToProductParam: PriceTierToProductParam = {
+  RETAIL: 'price',
+  WHOLESALE_BASIC: 'priceWholesaleBasic',
+  WHOLESALE_STANDARD: 'priceWholesaleStandard',
+  WHOLESALE_TOP: 'priceWholesaleTop',
+} as const;
+
 type TItem = Pick<Item, 'id' | 'name'> & {
   brand: {
     name: string;
   };
 };
 
-export type { TPagination, TItem };
+type TJwtUser = Pick<User, 'id' | 'email' | 'role' | 'customerPriceTier'>;
+
+export { type TPagination, type TItem, type TJwtUser, priceTierToProductParam };

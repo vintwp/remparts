@@ -16,13 +16,10 @@ export class RolesGuard implements CanActivate {
           roles.push('ADMIN');
           break;
         case 'MANAGER':
-          roles.push('ADMIN');
-          roles.push('MANAGER');
+          roles.push(...roles, 'ADMIN', 'MANAGER');
           break;
         default:
-          roles.push('ADMIN');
-          roles.push('MANAGER');
-          roles.push('USER');
+          roles.push(...roles, 'ADMIN', 'MANAGER', 'USER');
           break;
       }
     }

@@ -1,9 +1,10 @@
-import { Item } from '@/entities/item';
+import { ProductCard } from '@/widgets/ProductCard';
+
 import { cn } from '@/shared/lib/utils';
-import { Item as TItem } from '@/shared/types';
+import { Item as IItem } from '@/shared/types';
 
 type Props = {
-  items: TItem[];
+  items: IItem[];
   className?: string;
 };
 
@@ -12,12 +13,10 @@ export function ItemsList({ items, className }: Props) {
     <div className={cn('grid gap-4', className)}>
       {items.length ? (
         items.map(item => (
-          <div
-            key={`item-${item.id}`}
-            className=""
-          >
-            <Item item={item} />
-          </div>
+          <ProductCard
+            key={`${item.id}-${item.name}`}
+            item={item}
+          />
         ))
       ) : (
         <p className="py-2 text-center text-3xl font-semibold">

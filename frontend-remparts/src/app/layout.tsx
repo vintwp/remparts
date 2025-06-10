@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
 import './globals.css';
+import { SWRDevTool } from './providers/swrDevTools';
 
 const inter = Inter({
   subsets: ['cyrillic'],
@@ -28,11 +29,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="uk-UA"
-      className="h-full"
-    >
-      <body className={`${inter.className} flex min-h-full flex-col antialiased`}>{children}</body>
-    </html>
+    <SWRDevTool>
+      <html
+        lang="uk-UA"
+        className="h-full"
+      >
+        <body className={`${inter.className} flex min-h-full flex-col antialiased`}>
+          {children}
+        </body>
+      </html>
+    </SWRDevTool>
   );
 }

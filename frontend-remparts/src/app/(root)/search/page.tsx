@@ -1,11 +1,15 @@
-import { FilterBy, Pagination } from '@/features';
-import { Breadcrumbs } from './ui/Breadcrumbs';
-import { Container } from '@/shared/ui';
-import { getSearch } from '@/features/Search';
 import { notFound } from 'next/navigation';
-import { ItemsList } from '@/widgets/ItemsList';
-import { ControlPanel } from './ui/ControlPanel';
+
+import { getSearch } from '@/features/Search';
+
+import { auth } from '@/shared/config/auth';
 import { createURLSearchParams } from '@/shared/lib/utils';
+import { Container } from '@/shared/ui';
+
+import { Breadcrumbs } from './ui/Breadcrumbs';
+import { ControlPanel } from './ui/ControlPanel';
+import { ItemsList } from './ui/ItemsList';
+import { FilterBy, Pagination } from '@/features';
 
 type Props = {
   searchParams: Promise<{ query: string; [key: string]: string }>;
@@ -13,6 +17,7 @@ type Props = {
 
 export default async function SearchPage({ searchParams }: Props) {
   const searchParamsAsync = await searchParams;
+  const authorized = await auth();
 
   const searchParamsForRequest = Object.keys(searchParamsAsync)
     .map(key => {
@@ -27,7 +32,11 @@ export default async function SearchPage({ searchParams }: Props) {
     notFound();
   }
 
-  const searchResult = await getSearch(searchParamsAsync.query, searchParamsForRequest);
+  const searchResult = await getSearch(
+    searchParamsAsync.query,
+    searchParamsForRequest,
+    authorized?.access_token,
+  );
 
   return (
     <Container className="pt-2 pb-5 md:pt-5 md:pb-10">

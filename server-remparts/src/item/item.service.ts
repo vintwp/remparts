@@ -4,9 +4,10 @@ import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '../prisma.extension';
-import { Item } from '@prisma/client';
+import { CustomerPriceTier, Item } from '@prisma/client';
 import { Sort } from './types';
 import { paginate } from 'src/lib/utils';
+import { priceTierToProductParam } from 'src/types';
 
 @Injectable()
 export class ItemService {
@@ -140,7 +141,7 @@ export class ItemService {
     };
   }
 
-  createResponseItems(
+  public createResponseItems(
     items: Item[],
     {
       filterOptions: { categoryId = [], brandId = [], qualityId = [], complianceId = [], stock },
@@ -183,6 +184,23 @@ export class ItemService {
     };
   }
 
+  public mapItemsWithTierPrice(items: Item[], customerPriceTier: CustomerPriceTier = 'RETAIL') {
+    const priceFieldInItem = priceTierToProductParam[customerPriceTier];
+
+    const mappedItems = items.map(item => {
+      const priceToReturn = item[priceFieldInItem];
+      const { price, priceWholesaleBasic, priceWholesaleStandard, priceWholesaleTop, ...rest } =
+        item;
+
+      return {
+        ...rest,
+        price: priceToReturn,
+      };
+    });
+
+    return mappedItems;
+  }
+
   async getByParams(
     categoryId: number,
     brandId?: number[],
@@ -221,66 +239,6 @@ export class ItemService {
 
       await this.redisClient.setex(cacheKeyRedis, 14400, JSON.stringify(itemsByCategory));
     }
-
-    // #region old filtering and sorting TO DELETE
-
-    // filterItems by query params
-
-    // const filteredItems = [...itemsByCategory].filter((item) => {
-    //   let shouldBeAdded = true;
-
-    //   // check for brand condition
-
-    //   if (brandId.length > 0 && !brandId.includes(item.brandId)) {
-    //     shouldBeAdded = false;
-    //   }
-
-    //   if (qualityId.length > 0 && !qualityId.includes(item.qualityId)) {
-    //     shouldBeAdded = false;
-    //   }
-
-    //   if (complianceId.length > 0 && !qualityId.includes(item.complianceId)) {
-    //     shouldBeAdded = false;
-    //   }
-
-    //   if (stock && item.stock < 1) {
-    //     shouldBeAdded = false;
-    //   }
-
-    //   return shouldBeAdded;
-    // });
-
-    // sort items by sort Field
-
-    // const sortedItems = [...filteredItems].sort((itm1, itm2) => {
-    //   switch (sortKey) {
-    //     case 'name-desc':
-    //       return itm2.name.localeCompare(itm1.name);
-    //     case 'price-asc':
-    //       return itm1.price - itm2.price;
-    //     case 'price-desc':
-    //       return itm2.price - itm1.price;
-    //     default:
-    //       return itm1.name.localeCompare(itm2.name);
-    //   }
-    // });
-
-    // const filteredItemsByParams = this.filterItems(itemsByCategory, {
-    //   brandId,
-    //   qualityId,
-    //   complianceId,
-    //   stock,
-    // });
-    // const sortedItemsBySort = this.sortItems(filteredItemsByParams, sortKey);
-
-    // paginate array of products (sorted, filtered)
-
-    // const { items, pagination } = this.paginateItems(sortedItemsBySort, {
-    //   page,
-    //   perPage,
-    // });
-
-    // #endregion
 
     const reponseItems = this.createResponseItems(itemsByCategory, {
       filterOptions: {

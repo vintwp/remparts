@@ -1,6 +1,6 @@
 import { fetch } from '@/shared/api';
 import { CATEGORY_API } from '@/shared/config';
-import { Brand, Category, Item, Pagination, RefineFields, Department } from '@/shared/types';
+import { Brand, Category, Department, Item, Pagination, RefineFields } from '@/shared/types';
 
 const getCategories = async () => {
   const data = await fetch.getData<Array<Category & { department: Department }>>(
@@ -35,11 +35,16 @@ type CategoryByUrl = {
   };
 };
 
-const getCategoryByUrl = async (url: string, searchParams?: string) => {
+const getCategoryByUrl = async (
+  url: string,
+  searchParams?: string,
+  requestOptions?: RequestInit,
+) => {
   const data = await fetch.getData<CategoryByUrl>(
     `${CATEGORY_API}/${url}${searchParams ? `?${searchParams}` : ''}`,
     {
       cache: 'force-cache',
+      ...requestOptions,
     },
   );
 
