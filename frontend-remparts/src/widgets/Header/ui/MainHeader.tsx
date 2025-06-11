@@ -1,15 +1,20 @@
-import { Container } from '@/shared/ui';
-import { CatalogMenu } from './CatalogMenu';
 import { ShoppingCart, User } from 'lucide-react';
-import { ActionIcon } from './ActionIcon';
-import { Search } from '@/features';
+
+import { auth } from '@/shared/config/auth';
 import { cn } from '@/shared/lib/utils';
+import { Container } from '@/shared/ui';
+
+import { ActionIcon } from './ActionIcon';
+import { CatalogMenu } from './CatalogMenu';
+import { Search } from '@/features';
 
 type Props = {
   className?: string;
 };
 
-export function MainHeader({ className }: Props) {
+export async function MainHeader({ className }: Props) {
+  const session = await auth();
+
   return (
     <div className={cn('bg-primary-alt', className)}>
       <Container>
@@ -22,19 +27,21 @@ export function MainHeader({ className }: Props) {
           </div>
           <div className="flex gap-1 text-right md:basis-3/12 md:justify-end md:gap-4">
             <ActionIcon
-              href="/cart"
+              href={session ? '/api/account' : '/api/login'}
               icon={
-                <ShoppingCart
+                <User
                   size={20}
                   strokeWidth={1.75}
                   className="size-5"
                 />
               }
-            />
+            >
+              {!session && 'Вхід'}
+            </ActionIcon>
             <ActionIcon
-              href="/login"
+              href="/cart"
               icon={
-                <User
+                <ShoppingCart
                   size={20}
                   strokeWidth={1.75}
                   className="size-5"

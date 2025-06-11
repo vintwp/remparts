@@ -1,7 +1,8 @@
 import Image from 'next/image';
-import { Button, Container } from '@/shared/ui';
 import Link from 'next/link';
+
 import { PHONE_NUMBER } from '@/shared/config';
+import { Button, Container } from '@/shared/ui';
 
 const headerLink = [
   {

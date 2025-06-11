@@ -1,12 +1,14 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { startHolyLoader } from 'holy-loader';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { mutate } from 'swr';
 
 import { ReCaptcha } from '@/entities/captcha';
 
@@ -48,9 +50,10 @@ export function LoginForm() {
     const response = await loginCredentials(data);
 
     if (response.ok) {
+      startHolyLoader();
       router.push('/');
       router.refresh();
-
+      await mutate('authorization');
       return;
     }
 
@@ -64,20 +67,20 @@ export function LoginForm() {
       });
 
       if (response.status === 401) {
-        toast.info(response.message, { duration: 3000 });
+        toast.info(response.message, { duration: 2000 });
 
         return;
       }
 
       if (response.status === 404) {
-        toast.error(response.message, { duration: 3000 });
+        toast.error(response.message, { duration: 2000 });
         setError('root.serverError', {
           type: '404',
         });
         return;
       }
 
-      toast.warning(response.message, { duration: 3000 });
+      toast.warning(response.message, { duration: 2000 });
     }
   };
 
@@ -152,6 +155,12 @@ export function LoginForm() {
                 disabled={!isValid || isSubmitting}
               >
                 Увійти
+              </Button>
+              <Button
+                className="bg-primary-alt hover:bg-primary-alt/90 w-full"
+                onClick={() => startHolyLoader()}
+              >
+                start holy loader
               </Button>
             </div>
 

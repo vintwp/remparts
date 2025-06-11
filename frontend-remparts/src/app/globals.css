@@ -158,6 +158,15 @@
   }
 }
 
+body:has(#holy-progress) > div,
+body:has(#holy-progress) > main {
+  @apply -z-[1];
+}
+
+body:has(#holy-progress) {
+  @apply overflow-hidden;
+}
+
 #holy-progress {
   @apply left-0 after:fixed after:top-[2px] after:z-50 after:block after:h-[calc(100vh-2px)] after:w-screen after:bg-white/50 after:content-[''];
 }

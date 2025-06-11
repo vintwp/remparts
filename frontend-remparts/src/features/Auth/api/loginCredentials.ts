@@ -19,7 +19,7 @@ export async function loginCredentials(data: AuthData): Promise<FetchResponse<nu
     if (error instanceof AuthError) {
       return { ok: false, status: 400, message: error.message.split('..')[0] };
     } else {
-      return { ok: false, status: 500, message: 'Unexpected authorization error 333' };
+      return { ok: false, status: 500, message: 'Unexpected authorization by credentialserror' };
     }
   }
 }
