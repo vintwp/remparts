@@ -1,8 +1,9 @@
 import { getDepartments } from '@/entities/department';
+
 import { Menu } from '../../types';
 
-import { MobileMenu } from './MobileMenu';
 import { LargeMenu } from './LargeMenu';
+import { MobileMenu } from './MobileMenu';
 
 export async function CatalogMenu() {
   const departments = await getDepartments<Menu[]>(true);

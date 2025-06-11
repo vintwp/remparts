@@ -1,5 +1,9 @@
 'use client';
+
+import { usePathname } from 'next/navigation';
 import { useLayoutEffect, useState } from 'react';
+
+import { cn } from '@/shared/lib/utils';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -7,8 +11,7 @@ import {
   NavigationMenuList,
   NavigationMenuViewport,
 } from '@/shared/ui';
-import { cn } from '@/shared/lib/utils';
-import { usePathname } from 'next/navigation';
+
 import { MobileMenuTrigger } from './MobileMenuTrigger';
 
 type Props = {
@@ -47,6 +50,7 @@ export function MobileMenuRoot({ viewportClassName, children }: Props) {
       <NavigationMenuViewport
         className="mt-0 rounded-none"
         wrapperClassName={cn(
+          'mobile-nav-menu-viewport',
           'w-[calc(100vw-39px)] z-10',
           '[&>div]:w-full',
           'has-[>[data-state=open]]:[&+div]:block',

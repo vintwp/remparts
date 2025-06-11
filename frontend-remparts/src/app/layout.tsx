@@ -34,7 +34,10 @@ export default function RootLayout({
         lang="uk-UA"
         className="h-full"
       >
-        <body className={`${inter.className} flex min-h-full flex-col antialiased`}>
+        <body
+          className={`${inter.className} flex min-h-full flex-col antialiased
+            has-[&_.mobile-nav-menu-viewport>[data-state=open]]:overflow-hidden`}
+        >
           {children}
         </body>
       </html>

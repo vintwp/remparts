@@ -1,4 +1,5 @@
 import { ShoppingCart, User } from 'lucide-react';
+import { Suspense } from 'react';
 
 import { auth } from '@/shared/config/auth';
 import { cn } from '@/shared/lib/utils';
@@ -11,6 +12,8 @@ import { Search } from '@/features';
 type Props = {
   className?: string;
 };
+
+// TODO Add suspense to catalog menu (create skeleton)
 
 export async function MainHeader({ className }: Props) {
   const session = await auth();
