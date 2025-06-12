@@ -17,7 +17,7 @@ import { GoogleAuthPayload } from './types/googlePayload';
 import { JwtPayload } from './types/jwtPayload';
 import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
 import { cookiePath, type CookieName } from './types/cookie';
-import { errorsDescription } from './config/errorsDescription';
+import { messagesFromServer } from '../config/messagesFromServer';
 import { v4 as uuidv4 } from 'uuid';
 import Redis from 'ioredis';
 import { User } from '@prisma/client';
@@ -77,7 +77,7 @@ export class AuthService {
     const isUserExist = await this.userService.getByEmail(data.email);
 
     if (isUserExist) {
-      throw new ConflictException(errorsDescription.auth.register.exist.ua);
+      throw new ConflictException(messagesFromServer.auth.register.exist.ua);
     }
 
     const user = await this.userService.createUser({
@@ -88,7 +88,7 @@ export class AuthService {
     await this.emailConfirmationService.sendVerificationToken(user);
 
     return {
-      message: errorsDescription.auth.register.success.ua,
+      message: messagesFromServer.auth.register.success.ua,
     };
   }
 
@@ -97,19 +97,19 @@ export class AuthService {
     const user = await this.userService.getByEmail(email);
 
     if (!user) {
-      throw new NotFoundException(errorsDescription.auth.login.notFound.ua);
+      throw new NotFoundException(messagesFromServer.auth.login.notFound.ua);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw new NotFoundException(errorsDescription.auth.login.notFound.ua);
+      throw new NotFoundException(messagesFromServer.auth.login.notFound.ua);
     }
 
     if (!user.isVerified) {
       await this.emailConfirmationService.sendVerificationToken(user);
 
-      throw new UnauthorizedException(errorsDescription.auth.login.unverified.ua);
+      throw new UnauthorizedException(messagesFromServer.auth.login.unverified.ua);
     }
 
     return this.auth(res, {
@@ -160,7 +160,7 @@ export class AuthService {
     }
 
     if (user && user.oauthId !== userFromGoogle.id) {
-      const error = encodeURIComponent(errorsDescription.auth.login.oAuthError.ua);
+      const error = encodeURIComponent(messagesFromServer.auth.login.oAuthError.ua);
 
       return res.redirect(
         `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/callback?error=${error}`,

@@ -4,12 +4,15 @@ import { ConflictException, Inject, Injectable, NotFoundException } from '@nestj
 import { Prisma, User } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from 'src/prisma.extension';
+import { isDev } from 'src/lib/utils';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject('PrismaService')
     private readonly prismaService: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly configService: ConfigService,
   ) {}
 
   async createUser(
@@ -31,6 +34,11 @@ export class UserService {
       data: {
         email,
         password: password ? await bcrypt.hash(password, 10) : '',
+        isVerified: isDev(this.configService),
+        cart: {
+          create: {},
+        },
+
         ...restParams,
       },
     });

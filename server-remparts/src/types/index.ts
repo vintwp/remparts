@@ -1,4 +1,4 @@
-import { Item, CustomerPriceTier, User } from '@prisma/client';
+import { Item, CustomerPriceTier, User, ItemImage } from '@prisma/client';
 
 type TPagination = {
   isFirstPage: boolean;
@@ -30,6 +30,11 @@ type TItem = Pick<Item, 'id' | 'name'> & {
   };
 };
 
+type TItemReturn = Omit<
+  Item,
+  'priceWholesaleBasic' | 'priceWholesaleStandard' | 'priceWholesaleTop'
+> & { images?: ItemImage[] };
+
 type TJwtUser = Pick<User, 'id' | 'email' | 'role' | 'customerPriceTier'>;
 
-export { type TPagination, type TItem, type TJwtUser, priceTierToProductParam };
+export { type TPagination, type TItem, type TJwtUser, type TItemReturn, priceTierToProductParam };

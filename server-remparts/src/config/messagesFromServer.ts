@@ -1,6 +1,6 @@
-import { TokenExpiredError } from '@nestjs/jwt';
+import { error } from 'console';
 
-export const errorsDescription = {
+export const messagesFromServer = {
   auth: {
     login: {
       notFound: {
@@ -64,6 +64,32 @@ export const errorsDescription = {
         en: 'Your password has been successfully changed. You can now log in with your new password.',
         ua: 'Пароль успішно змінено. Будь ласка, використовуйте новий пароль для входу.',
       },
+    },
+  },
+  cart: {
+    addSuccess: {
+      en: 'Item was successfully added to cart',
+      ua: 'Товар успішно було додано у кошик',
+    },
+    addError: {
+      en: 'Error adding item to cart',
+      ua: 'Помилка при додаванні товара у кошик',
+    },
+    removeSuccess: {
+      en: 'Item removed from cart',
+      ua: 'Товар видалено з кошика',
+    },
+    removeError: {
+      en: 'Error removing item from cart',
+      ua: 'Помилка при видаленні товара з кошика',
+    },
+    invalidId: {
+      en: 'Invalid item ID',
+      ua: 'Невірний ідентифікатор товару',
+    },
+    empty: {
+      en: 'Your cart is empty',
+      ua: 'Ваш кошик порожній',
     },
   },
 };

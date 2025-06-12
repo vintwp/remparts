@@ -10,7 +10,7 @@ import { UserService } from 'src/user/user.service';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { NewPasswordDto } from './dto/new-password.dto';
 import * as bcrypt from 'bcrypt';
-import { errorsDescription } from '../config/errorsDescription';
+import { messagesFromServer } from '../../config/messagesFromServer';
 
 @Injectable()
 export class EmailPasswordRecoveryService {
@@ -26,7 +26,7 @@ export class EmailPasswordRecoveryService {
     const isExistUser = await this.userService.getByEmail(dto.email);
 
     if (!isExistUser) {
-      throw new NotFoundException(errorsDescription.auth.recovery.notFound.ua);
+      throw new NotFoundException(messagesFromServer.auth.recovery.notFound.ua);
     }
 
     const recoveryPasswordToken = await this.generatePasswordRecoveryToken(isExistUser.email);
@@ -37,7 +37,7 @@ export class EmailPasswordRecoveryService {
     );
 
     return {
-      message: errorsDescription.auth.recovery.success.ua,
+      message: messagesFromServer.auth.recovery.success.ua,
     };
   }
 
@@ -50,19 +50,19 @@ export class EmailPasswordRecoveryService {
     });
 
     if (!isExistToken) {
-      throw new NotFoundException(errorsDescription.auth.recovery.tokenNotFound);
+      throw new NotFoundException(messagesFromServer.auth.recovery.tokenNotFound);
     }
 
     const hasExpired = new Date(isExistToken.expiresIn) < new Date();
 
     if (hasExpired) {
-      throw new NotFoundException(errorsDescription.auth.recovery.tokenExpired);
+      throw new NotFoundException(messagesFromServer.auth.recovery.tokenExpired);
     }
 
     const existUser = await this.userService.getByEmail(isExistToken.email);
 
     if (!existUser) {
-      throw new NotFoundException(errorsDescription.auth.recovery.notFound);
+      throw new NotFoundException(messagesFromServer.auth.recovery.notFound);
     }
 
     await this.userService.updateUser(existUser.email, {
@@ -70,7 +70,7 @@ export class EmailPasswordRecoveryService {
     });
 
     return {
-      message: errorsDescription.auth.recovery.succesPasswordChanged.ua,
+      message: messagesFromServer.auth.recovery.succesPasswordChanged.ua,
     };
   }
   private async generatePasswordRecoveryToken(email: string) {

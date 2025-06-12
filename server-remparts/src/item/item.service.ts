@@ -7,7 +7,7 @@ import { ExtendedPrismaClient } from '../prisma.extension';
 import { CustomerPriceTier, Item } from '@prisma/client';
 import { Sort } from './types';
 import { paginate } from 'src/lib/utils';
-import { priceTierToProductParam } from 'src/types';
+import { priceTierToProductParam, TItemReturn } from 'src/types';
 
 @Injectable()
 export class ItemService {
@@ -184,8 +184,24 @@ export class ItemService {
     };
   }
 
-  public mapItemsWithTierPrice(items: Item[], customerPriceTier: CustomerPriceTier = 'RETAIL') {
+  public mapItemsWithTierPrice(items: Item, customerPriceTier: CustomerPriceTier): TItemReturn;
+  public mapItemsWithTierPrice(items: Item[], customerPriceTier: CustomerPriceTier): TItemReturn[];
+  public mapItemsWithTierPrice(
+    items: Item | Item[],
+    customerPriceTier: CustomerPriceTier = 'RETAIL',
+  ): TItemReturn | TItemReturn[] {
     const priceFieldInItem = priceTierToProductParam[customerPriceTier];
+
+    if (!Array.isArray(items)) {
+      const priceToReturn = items[priceFieldInItem];
+      const { price, priceWholesaleBasic, priceWholesaleStandard, priceWholesaleTop, ...rest } =
+        items;
+
+      return {
+        ...rest,
+        price: priceToReturn,
+      };
+    }
 
     const mappedItems = items.map(item => {
       const priceToReturn = item[priceFieldInItem];

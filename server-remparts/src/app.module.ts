@@ -21,6 +21,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { CurrencyModule } from './currency/currency.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { CurrencyModule } from './currency/currency.module';
     UserModule,
     MailModule,
     CurrencyModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService, HashService],

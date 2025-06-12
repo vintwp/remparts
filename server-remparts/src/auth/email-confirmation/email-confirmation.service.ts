@@ -11,7 +11,7 @@ import { MailService } from 'src/mail/mail.service';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from '../auth.service';
 import { NotFoundError } from 'rxjs';
-import { errorsDescription } from '../config/errorsDescription';
+import { messagesFromServer } from '../../config/messagesFromServer';
 
 @Injectable()
 export class EmailConfirmationService {
@@ -41,19 +41,19 @@ export class EmailConfirmationService {
     });
 
     if (!isExistToken) {
-      throw new NotFoundException(errorsDescription.auth.confirm.notFound.ua);
+      throw new NotFoundException(messagesFromServer.auth.confirm.notFound.ua);
     }
 
     const hasExpired = new Date(isExistToken.expiresIn) < new Date();
 
     if (hasExpired) {
-      throw new NotFoundException(errorsDescription.auth.confirm.expired.ua);
+      throw new NotFoundException(messagesFromServer.auth.confirm.expired.ua);
     }
 
     const existUser = await this.userService.getByEmail(isExistToken.email);
 
     if (!existUser) {
-      throw new NotFoundException(errorsDescription.auth.login.notFound.ua);
+      throw new NotFoundException(messagesFromServer.auth.login.notFound.ua);
     }
 
     await this.userService.updateUser(existUser.email, { isVerified: true });
@@ -65,7 +65,7 @@ export class EmailConfirmationService {
     });
 
     return {
-      message: errorsDescription.auth.confirm.success.ua,
+      message: messagesFromServer.auth.confirm.success.ua,
     };
   }
 
