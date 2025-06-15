@@ -1,7 +1,3 @@
-interface ItemImage {
-  link: string;
-}
-
 interface Item {
   id: number;
   dbId: string;
@@ -13,7 +9,7 @@ interface Item {
   departmentId: number;
   categoryId: number;
   brandId: number;
-  images: ItemImage[];
+  images: string[];
 }
 
 export { type Item };

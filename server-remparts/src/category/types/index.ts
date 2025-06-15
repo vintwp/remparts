@@ -1,5 +1,5 @@
 import { Brand, Category, Department, Item, Quality } from '@prisma/client';
-import { TPagination } from 'src/types';
+import { ItemWithImageLinks, TPagination } from 'src/types';
 
 type TResponseCategoryByUrl = {
   category: Category & {
@@ -10,7 +10,7 @@ type TResponseCategoryByUrl = {
   };
 
   itemsByCategory: {
-    items: Array<Item & { images: Array<{ link: string }> }>;
+    items: Array<ItemWithImageLinks>;
     pagination: TPagination;
   };
 };

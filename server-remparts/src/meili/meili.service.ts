@@ -2,6 +2,7 @@ import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { Category, Item } from '@prisma/client';
 import Redis from 'ioredis';
 import { Index, MeiliSearch, SearchResponse, Settings } from 'meilisearch';
+import { ItemWithImageObjects } from 'src/types';
 
 @Injectable()
 export class MeiliService implements OnApplicationBootstrap {
@@ -9,9 +10,7 @@ export class MeiliService implements OnApplicationBootstrap {
   private MEILI_GLOBAL_INDEX: string;
   @Inject('REDIS_CLIENT') private readonly redisClient: Redis;
 
-  constructor(
-    @Inject('MEILISEARCH_CLIENT') private readonly meiliClient: MeiliSearch,
-  ) {
+  constructor(@Inject('MEILISEARCH_CLIENT') private readonly meiliClient: MeiliSearch) {
     this.MEILI_GLOBAL_INDEX = 'global_search';
   }
 
@@ -30,11 +29,8 @@ export class MeiliService implements OnApplicationBootstrap {
     }
   }
 
-  async addToGlobalSearch<T extends { id: number }>(
-    items: T[],
-    uniqueKey?: string,
-  ) {
-    const data = [...items].map((item) => {
+  async addToGlobalSearch<T extends { id: number }>(items: T[], uniqueKey?: string) {
+    const data = [...items].map(item => {
       return {
         ...item,
         id: `${uniqueKey ? `${uniqueKey}-` : ''}${item.id}`,
@@ -52,8 +48,10 @@ export class MeiliService implements OnApplicationBootstrap {
     return await this.index.getDocuments();
   }
 
-  async globalSearch(query: string) {
-    type TItem = Item & { category: Pick<Category, 'id' | 'name'> };
+  async globalSearch(
+    query: string,
+  ): Promise<Array<ItemWithImageObjects & { category: Pick<Category, 'id' | 'name'> }>> {
+    type TItem = ItemWithImageObjects & { category: Pick<Category, 'id' | 'name'> };
 
     const cacheKeyRedis = query;
     const searchResultFromRedis = await this.redisClient.get(cacheKeyRedis);

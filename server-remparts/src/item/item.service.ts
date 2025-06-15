@@ -6,6 +6,7 @@ import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '../prisma.extension';
 import { CustomerPriceTier, Item } from '@prisma/client';
 import { Sort } from './types';
+import { ItemWithImageLinks, ItemWithImageObjects } from 'src/types';
 import { paginate } from 'src/lib/utils';
 import { priceTierToProductParam, TItemReturn } from 'src/types';
 
@@ -21,13 +22,15 @@ export class ItemService {
     return 'This action adds a new item';
   }
 
-  async getAll(): Promise<Item[]> {
+  async getAll(): Promise<
+    Array<ItemWithImageObjects & { category: { id: number; name: string } }>
+  > {
     const cacheKeyRedis = 'items_all';
 
     const allItemsFromRedis = await this.redisClient.get(cacheKeyRedis);
 
     if (allItemsFromRedis) {
-      return JSON.parse(allItemsFromRedis) as Item[];
+      return JSON.parse(allItemsFromRedis);
     }
 
     const items = await this.prisma.client.item.findMany({
@@ -46,7 +49,9 @@ export class ItemService {
       },
     });
 
-    await this.redisClient.setex(cacheKeyRedis, 21600, JSON.stringify(items));
+    const itemsWithImageLinks = this.flattenProductImageLinks(items);
+
+    await this.redisClient.setex(cacheKeyRedis, 21600, JSON.stringify(itemsWithImageLinks));
 
     return items;
   }
@@ -141,8 +146,27 @@ export class ItemService {
     };
   }
 
+  private flattenProductImageLinks(items: ItemWithImageObjects[]): Array<ItemWithImageLinks> {
+    const result = items.map(itm => {
+      const images = itm.images.map(img => {
+        if (typeof img === 'string') {
+          return img;
+        }
+
+        return img.link;
+      });
+
+      return {
+        ...itm,
+        images,
+      };
+    });
+
+    return result;
+  }
+
   public createResponseItems(
-    items: Item[],
+    items: ItemWithImageObjects[],
     {
       filterOptions: { categoryId = [], brandId = [], qualityId = [], complianceId = [], stock },
       page,
@@ -161,7 +185,9 @@ export class ItemService {
       sortKey?: string;
     },
   ) {
-    const filteredItemsByParams = this.filterItems(items, {
+    const itemsWithImageLinks = this.flattenProductImageLinks(items);
+
+    const filteredItemsByParams = this.filterItems(itemsWithImageLinks, {
       categoryId,
       brandId,
       qualityId,
@@ -229,7 +255,7 @@ export class ItemService {
   ) {
     const cacheKeyRedis = `category-${categoryId}`;
 
-    let itemsByCategory: Item[];
+    let itemsByCategory: ItemWithImageObjects[];
 
     const itemsPerRequestFromRedis = await this.redisClient.get(cacheKeyRedis);
 

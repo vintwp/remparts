@@ -30,11 +30,22 @@ type TItem = Pick<Item, 'id' | 'name'> & {
   };
 };
 
+type ItemWithImageObjects = Item & { images: { link: string }[] };
+type ItemWithImageLinks = Item & { images?: string[] };
+
 type TItemReturn = Omit<
-  Item,
+  ItemWithImageLinks,
   'priceWholesaleBasic' | 'priceWholesaleStandard' | 'priceWholesaleTop'
-> & { images?: ItemImage[] };
+>;
 
 type TJwtUser = Pick<User, 'id' | 'email' | 'role' | 'customerPriceTier'>;
 
-export { type TPagination, type TItem, type TJwtUser, type TItemReturn, priceTierToProductParam };
+export {
+  type TPagination,
+  type TItem,
+  type TJwtUser,
+  type TItemReturn,
+  type ItemWithImageObjects,
+  type ItemWithImageLinks,
+  priceTierToProductParam,
+};

@@ -1,6 +1,6 @@
-import { Item, ItemImage } from '@prisma/client';
+import { ItemWithImageLinks } from 'src/types';
 
-export type TItemCart = Pick<Item, 'id' | 'name' | 'price'> & {
+export type TItemCart = Pick<ItemWithImageLinks, 'id' | 'name' | 'price'> & {
   itemQty: number;
-  images?: ItemImage[];
+  images?: string[];
 };

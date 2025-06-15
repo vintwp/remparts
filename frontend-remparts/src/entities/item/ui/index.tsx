@@ -25,7 +25,7 @@ function ItemImage({ images, name }: { images: IItem['images']; name: string }) 
     <div className="-z-1 basis-3/12 overflow-hidden rounded-tl-sm rounded-bl-sm pt-2 md:basis-1/12">
       <Image
         alt={name}
-        src={`${BACKEND_DOMAIN}/${images[0].link}`}
+        src={`${BACKEND_DOMAIN}/${images[0]}`}
         width={110}
         height={110}
       />
