@@ -16,6 +16,7 @@ export const BANNER_API = getEnvVar('BANNER_API');
 export const SEARCH_API = getEnvVar('SEARCH_API');
 export const ALL_USERS = getEnvVar('USER_GETALL');
 export const CURRENCY_API = getEnvVar('CURRENCY_API');
+export const CART_API = getEnvVar('CART_API');
 export const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 export const AUTH_REGISTER_API = getEnvVar('AUTH_REGISTER_API');
 export const AUTH_LOGIN_API = getEnvVar('AUTH_LOGIN_API');

@@ -156,12 +156,6 @@ export function LoginForm() {
               >
                 Увійти
               </Button>
-              <Button
-                className="bg-primary-alt hover:bg-primary-alt/90 w-full"
-                onClick={() => startHolyLoader()}
-              >
-                start holy loader
-              </Button>
             </div>
 
             <div className="mt-4 flex items-center justify-center">

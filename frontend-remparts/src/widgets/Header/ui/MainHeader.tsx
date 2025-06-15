@@ -1,5 +1,4 @@
 import { ShoppingCart, User } from 'lucide-react';
-import { Suspense } from 'react';
 
 import { auth } from '@/shared/config/auth';
 import { cn } from '@/shared/lib/utils';

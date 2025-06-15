@@ -12,14 +12,3 @@ model Category {
 
   @@map("category")
 }
-
-
-// model CategoriesOnBrands {
-//   category    Category @relation(fields: [categoryId], references: [id])
-//   categoryId  Int
-//   brand       Brand @relation(fields: [brandId], references: [id])
-//   brandId     Int
-
-//   @@id([categoryId, brandId])
-//   @@map("categories_on_brands")
-// }

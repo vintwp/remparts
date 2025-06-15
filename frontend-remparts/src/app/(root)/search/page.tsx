@@ -15,6 +15,8 @@ type Props = {
   searchParams: Promise<{ query: string; [key: string]: string }>;
 };
 
+// TODO: Afer pushing enter - not found
+
 export default async function SearchPage({ searchParams }: Props) {
   const searchParamsAsync = await searchParams;
   const authorized = await auth();
