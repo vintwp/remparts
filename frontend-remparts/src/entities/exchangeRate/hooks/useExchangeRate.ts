@@ -18,7 +18,6 @@ export function useExchangeRate() {
     },
     {
       revalidateOnMount: true,
-      revalidateIfStale: true,
       revalidateOnFocus: false,
       refreshInterval: 1000 * 60 * 60,
     },

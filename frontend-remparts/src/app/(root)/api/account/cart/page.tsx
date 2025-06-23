@@ -1,9 +1,9 @@
-import { Metadata } from 'next';
- 
-export const metadata: Metadata = {
-  title: 'Корзина',
-};
+import { Cart } from '@/widgets/(Account)/Cart';
 
 export default function CartPage() {
-  return <div>Cart</div>;
+  return (
+    <div>
+      <Cart />
+    </div>
+  );
 }

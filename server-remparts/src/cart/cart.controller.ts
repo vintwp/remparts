@@ -3,7 +3,8 @@ import { CartService } from './cart.service';
 import { IsAuthorized } from 'src/auth/decorators/is-authorized.decorator';
 import { Request } from 'express';
 import { TJwtUser } from 'src/types';
-import { AddDeleteItemCartDto } from './dto/add-delete-item-cart.dto';
+import { AddItemCartDto } from './dto/add-item-cart.dto';
+import { DeleteItemCartDto } from './dto/delete-item-cart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -20,7 +21,7 @@ export class CartController {
   @IsAuthorized()
   @Post()
   @HttpCode(HttpStatus.OK)
-  add(@Req() req: Request, @Body() dto: AddDeleteItemCartDto) {
+  add(@Req() req: Request, @Body() dto: any) {
     const user = req.user as TJwtUser;
     return this.cartService.add(user.email, dto);
   }
@@ -28,7 +29,7 @@ export class CartController {
   @IsAuthorized()
   @Delete()
   @HttpCode(HttpStatus.OK)
-  delete(@Req() req: Request, @Body() dto: Pick<AddDeleteItemCartDto, 'itemId'>) {
+  delete(@Req() req: Request, @Body() dto: any) {
     const user = req.user as TJwtUser;
     return this.cartService.delete(user.email, dto);
   }

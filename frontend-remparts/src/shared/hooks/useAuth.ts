@@ -26,7 +26,7 @@ export function useAuth() {
   );
 
   return {
-    authorization: data,
+    authorization: data as Session,
     isLoading: !error && !data,
     isError: !!error,
   };

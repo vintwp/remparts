@@ -95,7 +95,7 @@ import { SelectDropdown, type TSelectDropdownOption } from './SelectDropdown';
 import { Separator } from './Separator';
 import { Skeleton } from './Skeleton';
 import { Toaster } from './Sonner';
-import { Spinner } from './Spinner';
+import { Spinner, type SpinnerSize } from './Spinner';
 import { Triangle } from './Triangle';
 
 export {
@@ -177,6 +177,7 @@ export {
   DrawerTitle,
   DrawerDescription,
   Spinner,
+  type SpinnerSize,
   Dialog,
   DialogContent,
   DialogDescription,

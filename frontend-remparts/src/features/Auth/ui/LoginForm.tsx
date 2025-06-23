@@ -53,7 +53,12 @@ export function LoginForm() {
       startHolyLoader();
       router.push('/');
       router.refresh();
+
+      // refresh user after login
       await mutate('authorization');
+
+      // refresh cart after login
+      await mutate('cart');
       return;
     }
 

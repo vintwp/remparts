@@ -4,6 +4,7 @@ import { Item } from '@/entities/item';
 
 import { Item as IItem } from '@/shared/types';
 
+import { ProductAddToCart } from './ProductAddToCart';
 import { ProductCardPrice } from './ProductCardPrice';
 
 type Props = {
@@ -29,7 +30,9 @@ export async function ProductCard({ item }: Props) {
         <Suspense fallback={null}>
           <ProductCardPrice price={item.price} />
         </Suspense>
-        <Item.BuyButton isStock={item.stock > 0} />
+        <Suspense fallback={null}>
+          <ProductAddToCart item={item} />
+        </Suspense>
       </Item.Actions>
     </Item>
   );

@@ -1,10 +1,10 @@
-import { ShoppingCart, User } from 'lucide-react';
+import { Suspense } from 'react';
 
-import { auth } from '@/shared/config/auth';
 import { cn } from '@/shared/lib/utils';
 import { Container } from '@/shared/ui';
 
-import { ActionIcon } from './ActionIcon';
+import { AccountButton } from './AccountButton';
+import { CartButton } from './CartButton';
 import { CatalogMenu } from './CatalogMenu';
 import { Search } from '@/features';
 
@@ -15,8 +15,6 @@ type Props = {
 // TODO Add suspense to catalog menu (create skeleton)
 
 export async function MainHeader({ className }: Props) {
-  const session = await auth();
-
   return (
     <div className={cn('bg-primary-alt', className)}>
       <Container>
@@ -28,28 +26,10 @@ export async function MainHeader({ className }: Props) {
             <Search />
           </div>
           <div className="flex gap-1 text-right md:basis-3/12 md:justify-end md:gap-4">
-            <ActionIcon
-              href={session ? '/api/account' : '/api/login'}
-              icon={
-                <User
-                  size={20}
-                  strokeWidth={1.75}
-                  className="size-5"
-                />
-              }
-            >
-              {!session && 'Вхід'}
-            </ActionIcon>
-            <ActionIcon
-              href="/cart"
-              icon={
-                <ShoppingCart
-                  size={20}
-                  strokeWidth={1.75}
-                  className="size-5"
-                />
-              }
-            />
+            <Suspense>
+              <AccountButton />
+            </Suspense>
+            <CartButton />
           </div>
         </div>
       </Container>

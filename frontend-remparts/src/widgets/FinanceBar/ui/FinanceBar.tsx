@@ -1,9 +1,8 @@
 'use client';
 
-import { useAuth } from '@/features/Auth';
-
 import { useExchangeRate } from '@/entities/exchangeRate';
 
+import { useAuth } from '@/shared/hooks';
 import { Container } from '@/shared/ui';
 
 export function FinanceBar() {

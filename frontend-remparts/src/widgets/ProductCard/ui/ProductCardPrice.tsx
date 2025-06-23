@@ -1,10 +1,9 @@
 'use client';
 
-import { useAuth } from '@/features/Auth';
-
 import { useExchangeRate } from '@/entities/exchangeRate';
 import { Item } from '@/entities/item';
 
+import { useAuth } from '@/shared/hooks';
 import { Spinner } from '@/shared/ui';
 
 type Props = {

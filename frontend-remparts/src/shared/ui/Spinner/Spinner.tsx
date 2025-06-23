@@ -36,6 +36,8 @@ interface SpinnerContentProps
   children?: React.ReactNode;
 }
 
+export type SpinnerSize = VariantProps<typeof loaderVariants>['size'];
+
 export function Spinner({ size, show, children, className }: SpinnerContentProps) {
   return (
     <span className={spinnerVariants({ show })}>

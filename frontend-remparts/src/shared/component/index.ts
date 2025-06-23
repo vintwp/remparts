@@ -1,4 +1,6 @@
 import { FormInputError, FormInputInput, FormInputLabel, FormInputRoot } from './FormInput';
+import { NumberInput } from './NumberInput';
+import { Overlay } from './Overlay';
 import { SidebarCollapsible, SidebarCollapsibleItem } from './SidebarCollapsible';
 
 export {
@@ -8,4 +10,6 @@ export {
   FormInputInput,
   FormInputLabel,
   FormInputError,
+  NumberInput,
+  Overlay,
 };

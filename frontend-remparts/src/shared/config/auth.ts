@@ -49,6 +49,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new AuthError(request.message || 'Unexpected authorization error');
         }
 
+        console.log(request, 'authorize');
+
         const { user, access_token, refresh_token } = request.data;
 
         return {

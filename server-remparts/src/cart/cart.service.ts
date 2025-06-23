@@ -2,13 +2,14 @@ import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from 'src/prisma.extension';
 import { ItemService } from 'src/item/item.service';
-import { CustomerPriceTier, Prisma } from '@prisma/client';
-import { AddDeleteItemCartDto } from './dto/add-delete-item-cart.dto';
+import { Prisma } from '@prisma/client';
+import { AddItemCartDto } from './dto/add-item-cart.dto';
 import Redis from 'ioredis';
 import { UserService } from 'src/user/user.service';
 import { messagesFromServer } from 'src/config/messagesFromServer';
 import { TItemReturn } from 'src/types';
 import { TItemCart } from './types';
+import { DeleteItemCartDto } from './dto/delete-item-cart.dto';
 
 @Injectable()
 export class CartService {
@@ -57,11 +58,19 @@ export class CartService {
         customerPriceTier,
       );
 
+      const flattenImages = cartItemFromDb.item.images.map(itmImage => {
+        if (typeof itmImage === 'string') {
+          return itmImage;
+        }
+
+        return itmImage.link;
+      });
+
       return {
         id,
         name,
         price,
-        images,
+        images: flattenImages,
         itemQty: cartItemFromDb.itemQty,
       };
     });
@@ -70,12 +79,14 @@ export class CartService {
       return total + cartItem.price * cartItem.itemQty;
     }, 0);
 
-    await this.redisClient.setex(redisKey, 12 * 3600, JSON.stringify(cartItemsToResponse));
+    const response = { items: cartItemsToResponse, totalSum };
 
-    return { items: cartItemsToResponse, totalSum };
+    await this.redisClient.setex(redisKey, 12 * 3600, JSON.stringify(response));
+
+    return response;
   }
 
-  async add(userEmail: string, item: AddDeleteItemCartDto) {
+  async add(userEmail: string, item: AddItemCartDto) {
     try {
       const redisKey = `cart-${userEmail}`;
       await this.redisClient.del(redisKey);
@@ -108,7 +119,11 @@ export class CartService {
         },
       });
 
-      return this.getByEmail(userEmail);
+      const cart = await this.getByEmail(userEmail);
+      return {
+        data: cart,
+        message: messagesFromServer.cart.addSuccess.ua,
+      };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -120,7 +135,7 @@ export class CartService {
     }
   }
 
-  async delete(userEmail: string, item: Pick<AddDeleteItemCartDto, 'itemId'>) {
+  async delete(userEmail: string, item: Pick<DeleteItemCartDto, 'itemId'>) {
     try {
       const redisKey = `cart-${userEmail}`;
       await this.redisClient.del(redisKey);
@@ -130,17 +145,20 @@ export class CartService {
         },
         data: {
           item: {
-            delete: {
-              cartEmail_itemId: {
-                cartEmail: userEmail,
-                itemId: item.itemId,
-              },
-            },
+            deleteMany: item.itemId.map(id => ({
+              cartEmail: userEmail,
+              itemId: id,
+            })),
           },
         },
       });
 
-      return this.getByEmail(userEmail);
+      const cart = await this.getByEmail(userEmail);
+
+      return {
+        data: cart,
+        message: messagesFromServer.cart.removeSuccess.ua,
+      };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2017') {

@@ -12,7 +12,7 @@ function Item({ isStock, children }: { isStock: boolean; children: React.ReactNo
     <div
       className={cn(
         'border-additional/40 flex h-full flex-wrap rounded-sm border-[1px] hover:shadow-md md:flex-nowrap',
-        isStock && 'opacity-80 hover:shadow-none',
+        !isStock && 'opacity-80 hover:shadow-none',
       )}
     >
       {children}

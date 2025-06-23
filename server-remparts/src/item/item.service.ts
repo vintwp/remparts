@@ -146,7 +146,9 @@ export class ItemService {
     };
   }
 
-  private flattenProductImageLinks(items: ItemWithImageObjects[]): Array<ItemWithImageLinks> {
+  public flattenProductImageLinks<T extends ItemWithImageObjects>(
+    items: T[],
+  ): Array<ItemWithImageLinks> {
     const result = items.map(itm => {
       const images = itm.images.map(img => {
         if (typeof img === 'string') {

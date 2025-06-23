@@ -4,6 +4,7 @@ import { FinanceBar } from '@/widgets/FinanceBar';
 import { Footer } from '@/widgets/Footer';
 import { MainHeader, TopHeader } from '@/widgets/Header';
 
+import { getCart } from '@/entities/cart';
 import { getExchangeRate } from '@/entities/exchangeRate';
 
 import { auth } from '@/shared/config/auth';
@@ -20,8 +21,11 @@ export default async function RootLayout({
   login: React.ReactNode;
   children: React.ReactNode;
 }>) {
-  const exchangeRateResponse = await getExchangeRate();
   const session = await auth();
+  const exchangeRateResponse = await getExchangeRate();
+  const cart = session?.access_token
+    ? await getCart(session.access_token)
+    : { ok: false, data: null };
 
   return (
     <SWRProvider
@@ -29,6 +33,7 @@ export default async function RootLayout({
         fallback: {
           exchangeRate: exchangeRateResponse.ok ? exchangeRateResponse.data : 1,
           authorization: session,
+          cart: cart.ok ? cart.data : null,
         },
       }}
     >

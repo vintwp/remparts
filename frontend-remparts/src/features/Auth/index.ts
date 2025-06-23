@@ -1,5 +1,4 @@
 import { loginGoogle } from './api';
-import { useAuth } from './hooks';
 import {
   ChangePasswordForm,
   ConfirmEmail,
@@ -17,5 +16,4 @@ export {
   ConfirmEmail,
   RecoveryForm,
   ChangePasswordForm,
-  useAuth,
 };
