@@ -49,8 +49,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new AuthError(request.message || 'Unexpected authorization error');
         }
 
-        console.log(request, 'authorize');
-
         const { user, access_token, refresh_token } = request.data;
 
         return {
@@ -65,6 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         token: {},
       },
+
       async authorize(credentials) {
         const request = await fetch.getData<TResponseUser>(
           `${AUTH_GOOGLE_OAUTH_CALLBACK_API}/${credentials?.token}`,
