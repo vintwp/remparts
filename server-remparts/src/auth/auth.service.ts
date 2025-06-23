@@ -112,12 +112,14 @@ export class AuthService {
       throw new UnauthorizedException(messagesFromServer.auth.login.unverified.ua);
     }
 
-    return this.auth(res, {
+    const authData = await this.auth(res, {
       id: user.id,
       email: user.email,
       role: user.role,
       customerPriceTier: user.customerPriceTier,
     });
+
+    return { data: authData };
   }
 
   //  TODO : access and resfresh token should be valid at once. After refreshing access tokens - refresh token be added to blacklist in redis (with expiration time)

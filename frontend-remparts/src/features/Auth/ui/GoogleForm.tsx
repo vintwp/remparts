@@ -41,6 +41,7 @@ export function GoogleForm({ disabled = false }: Props) {
         if (message.success) {
           toast.success(message.success);
           router.push('/');
+          router.refresh();
           return;
         }
       } catch {

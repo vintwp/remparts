@@ -70,7 +70,7 @@ class Fetch {
 
       return {
         ok: true as const,
-        data: data as T,
+        data: data.data as T,
         message: data.message,
       };
     } catch (error) {
