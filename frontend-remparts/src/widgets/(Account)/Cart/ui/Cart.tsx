@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { mutate } from 'swr';
 
 import { addToCart, deleteFromCart } from '@/entities/cart';
+import { mutateCart } from '@/entities/cart';
 import { useCart } from '@/entities/cart/hooks/useCart';
 import { useExchangeRate } from '@/entities/exchangeRate';
 
@@ -17,9 +18,11 @@ import { CartItem } from './CartItem';
 export function Cart() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { exchangeRate } = useExchangeRate();
-  const { authorization } = useAuth();
+  const { auth } = useAuth();
 
-  const cartFromSwr = useCart(authorization?.access_token || '');
+  const cartFromSwr = useCart(auth?.access_token);
+
+  console.log('cartFromSwr', cartFromSwr);
 
   if (!cartFromSwr.cart) {
     return <div className="relative flex h-full flex-col gap-4">В корзині немає товарів</div>;
@@ -30,9 +33,9 @@ export function Cart() {
   const onDeleteCartItem = async (id: number) => {
     setIsLoading(true);
 
-    if (authorization?.access_token) {
-      await deleteFromCart([id], authorization.access_token);
-      await mutate('cart');
+    if (auth?.access_token) {
+      await deleteFromCart([id], auth.access_token);
+      await mutateCart(auth.access_token);
       setIsLoading(false);
     }
   };
@@ -40,9 +43,9 @@ export function Cart() {
   const onChangeCartItemQty = async (id: number, itemQty: number) => {
     setIsLoading(true);
 
-    if (authorization?.access_token) {
-      await addToCart(id, itemQty, authorization.access_token);
-      await mutate('cart');
+    if (auth?.access_token) {
+      await addToCart(id, itemQty, auth.access_token);
+      await mutateCart(auth.access_token);
     }
 
     setIsLoading(false);
@@ -51,11 +54,11 @@ export function Cart() {
   const onClearCart = async () => {
     setIsLoading(true);
 
-    if (authorization?.access_token) {
+    if (auth?.access_token) {
       const addedItems = items.map(itm => itm.id);
 
-      await deleteFromCart(addedItems, authorization.access_token);
-      await mutate('cart');
+      await deleteFromCart(addedItems, auth.access_token);
+      await mutateCart(auth.access_token);
       setIsLoading(false);
     }
   };

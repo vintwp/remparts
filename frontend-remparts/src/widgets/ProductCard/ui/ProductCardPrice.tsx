@@ -20,7 +20,7 @@ function PriceLoader() {
 
 export function ProductCardPrice({ price }: Props) {
   const { isLoading, exchangeRate } = useExchangeRate();
-  const { authorization } = useAuth();
+  const { auth } = useAuth();
 
   const priceToShow = +(price * (exchangeRate || 1)).toFixed(2);
 
@@ -30,7 +30,7 @@ export function ProductCardPrice({ price }: Props) {
         <PriceLoader />
       ) : (
         <div className="flex h-full flex-wrap justify-between gap-4 md:flex-col md:gap-2">
-          {authorization && (
+          {auth && (
             <Item.Price
               price={price}
               currency="USD"

@@ -1,9 +1,15 @@
+'use client';
+
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { mutate } from 'swr';
 
-import { FRONTEND_DOMAIN } from '@/shared/config';
+import { AUTH_GOOGLE_FRONTEND, FRONTEND_DOMAIN } from '@/shared/config';
 import { Button } from '@/shared/ui';
+
+import { getAuth } from '../api';
 
 type Props = {
   disabled?: boolean;
@@ -11,53 +17,71 @@ type Props = {
 
 export function GoogleForm({ disabled = false }: Props) {
   const router = useRouter();
+  const modal = useRef<Window | null>(null);
 
-  const handleGoogle = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-
-    const popup = window.open(
-      'http://localhost:5000/api/auth/google',
-      'Google Auth Callback',
-      'width=500,height=500',
-    );
-
-    if (!popup) {
+  const handleModalWindowMessage = async (event: MessageEvent) => {
+    if (event.origin !== FRONTEND_DOMAIN) {
       return;
     }
 
-    const handlePopupMessage = (event: MessageEvent) => {
-      if (event.origin !== FRONTEND_DOMAIN) {
+    if (typeof event.data !== 'string') {
+      return;
+    }
+
+    try {
+      const eventData = JSON.parse(event.data);
+
+      if (eventData.type !== 'auth') {
+        toast.error('Невірний тип повідомлення');
         return;
       }
 
-      try {
-        const message = JSON.parse(event.data);
-
-        if (message.error) {
-          toast.error(message.error);
-          return;
-        }
-
-        if (message.success) {
-          toast.success(message.success);
-          router.push('/');
-          router.refresh();
-          return;
-        }
-      } catch {
-        toast.info('Неочікувана помилка, перезавантажте сторінку');
+      if (eventData.error) {
+        toast.error(eventData.error);
+        return;
       }
-    };
 
-    window.addEventListener('message', handlePopupMessage, { once: true });
+      if (eventData.success) {
+        const isAuth = await getAuth();
+
+        toast.success(eventData.success);
+
+        await mutate('auth');
+        await mutate(['cart', isAuth?.access_token]);
+
+        router.push('/');
+        router.refresh();
+
+        return;
+      }
+    } catch {
+      toast.info('Неочікувана помилка, перезавантажте сторінку');
+    }
   };
+  const createModalWindow = () => {
+    modal.current = window.open(
+      AUTH_GOOGLE_FRONTEND,
+      'Google Auth Callback',
+      'width=500,height=500,norefferer',
+    );
+
+    if (modal.current) {
+      window.addEventListener('message', handleModalWindowMessage);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('message', handleModalWindowMessage);
+    };
+  }, []);
 
   return (
     <Button
       type="button"
       variant="outline"
       className="mt-4 w-full hover:bg-transparent hover:text-black/80"
-      onClick={handleGoogle}
+      onClick={createModalWindow}
       disabled={disabled}
     >
       <Image

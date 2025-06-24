@@ -23,6 +23,7 @@ import {
   Separator,
 } from '@/shared/ui';
 
+import { getAuth } from '../api';
 import { loginCredentials } from '../api/loginCredentials';
 import { LoginSchema, TLoginSchema } from '../scheme';
 
@@ -48,17 +49,19 @@ export function LoginForm() {
 
   const onSubmit: SubmitHandler<TLoginSchema> = async data => {
     const response = await loginCredentials(data);
+    const isAuth = await getAuth();
 
-    if (response.ok) {
+    if (response.ok && isAuth) {
       startHolyLoader();
+      // refresh user after login
+      await mutate('auth');
+
+      // refresh cart after login
+      await mutate(['cart', isAuth.access_token]);
+
       router.push('/');
       router.refresh();
 
-      // refresh user after login
-      await mutate('authorization');
-
-      // refresh cart after login
-      await mutate('cart');
       return;
     }
 

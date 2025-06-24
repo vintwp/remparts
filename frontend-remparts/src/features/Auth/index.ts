@@ -1,4 +1,4 @@
-import { loginGoogle } from './api';
+import { getAuth, loginGoogle } from './api';
 import {
   ChangePasswordForm,
   ConfirmEmail,

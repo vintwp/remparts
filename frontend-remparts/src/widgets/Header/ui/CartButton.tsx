@@ -9,8 +9,8 @@ import { useAuth } from '@/shared/hooks';
 import { Button } from '@/shared/ui';
 
 export function CartButton() {
-  const { authorization } = useAuth();
-  const { cart } = useCart(authorization?.access_token || '');
+  const { auth } = useAuth();
+  const { cart } = useCart(auth?.access_token || '');
   const itemsInCart = cart?.items.length || 0;
 
   return (

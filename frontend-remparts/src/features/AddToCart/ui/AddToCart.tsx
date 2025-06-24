@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { mutate } from 'swr';
 
-import { addToCart, deleteFromCart } from '@/entities/cart';
+import { addToCart, deleteFromCart, mutateCart } from '@/entities/cart';
 import { useCart } from '@/entities/cart/hooks/useCart';
 
 import { useAuth } from '@/shared/hooks';
@@ -52,8 +52,8 @@ function OutOfStock() {
 
 export function AddToCart({ isStock, itemId }: Props) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { authorization } = useAuth();
-  const cartFromSwr = useCart(authorization?.access_token || '');
+  const { auth } = useAuth();
+  const cartFromSwr = useCart(auth?.access_token || '');
 
   const isAddedToCart = (cartFromSwr.cart?.items || []).some(item => item.id === itemId);
 
@@ -66,7 +66,7 @@ export function AddToCart({ isStock, itemId }: Props) {
   };
 
   const handleClick = async () => {
-    if (!authorization) {
+    if (!auth) {
       toast.error('Перед додаванням товару у кошик, Ви повинні бути авторизовані');
 
       return;
@@ -77,7 +77,7 @@ export function AddToCart({ isStock, itemId }: Props) {
     if (isAddedToCart) {
       setIsLoading(false);
 
-      const res = await deleteFromCart([itemId], authorization.access_token || '');
+      const res = await deleteFromCart([itemId], auth.access_token || '');
 
       if (!res.ok) {
         toast.error(res.message || 'Помилка при видаленні товару з кошика');
@@ -86,7 +86,7 @@ export function AddToCart({ isStock, itemId }: Props) {
         return;
       }
 
-      await mutate('cart');
+      await mutateCart(auth.access_token);
       setIsLoading(false);
 
       toast.success(res.message || `Товар видалено з кошика`);
@@ -94,7 +94,7 @@ export function AddToCart({ isStock, itemId }: Props) {
       return;
     }
 
-    const res = await addToCart(itemId, 1, authorization.access_token || '');
+    const res = await addToCart(itemId, 1, auth.access_token || '');
 
     if (!res.ok) {
       toast.error(res.message || 'Помилка при додаванні товару до кошика');
@@ -103,7 +103,7 @@ export function AddToCart({ isStock, itemId }: Props) {
       return;
     }
 
-    await mutate('cart');
+    await mutateCart(auth.access_token);
     setIsLoading(false);
     toast.success(res.message || `Товар додано до кошика`);
   };

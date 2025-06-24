@@ -7,9 +7,9 @@ import { Container } from '@/shared/ui';
 
 export function FinanceBar() {
   const { exchangeRate } = useExchangeRate();
-  const { authorization } = useAuth();
+  const { auth } = useAuth();
 
-  if (!authorization) {
+  if (!auth) {
     return null;
   }
 

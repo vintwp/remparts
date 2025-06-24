@@ -17,7 +17,7 @@ function SignInGoogle() {
       await loginGoogle(token);
 
       if (typeof window !== 'undefined') {
-        const success = JSON.stringify({ success: 'Ви успішно увійшли' });
+        const success = JSON.stringify({ type: 'auth', success: 'Ви успішно увійшли' });
         window.opener.postMessage(success, FRONTEND_DOMAIN);
         window.close();
       }
@@ -28,7 +28,7 @@ function SignInGoogle() {
 
     if (error) {
       if (typeof window !== 'undefined') {
-        window.opener.postMessage(JSON.stringify({ error }), FRONTEND_DOMAIN);
+        window.opener.postMessage(JSON.stringify({ type: 'auth', error }), FRONTEND_DOMAIN);
         window.close();
       }
     }
@@ -37,6 +37,7 @@ function SignInGoogle() {
       login(token);
     }
   }, [router, searchParams]);
+
   return <div className="flex min-h-screen items-center justify-center">Переадресація</div>;
 }
 

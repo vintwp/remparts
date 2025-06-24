@@ -32,8 +32,8 @@ export default async function RootLayout({
       value={{
         fallback: {
           exchangeRate: exchangeRateResponse.ok ? exchangeRateResponse.data : 1,
-          authorization: session,
-          cart: cart.ok ? cart.data : null,
+          auth: session,
+          [`cart,${session?.access_token}`]: cart.ok ? cart.data : null,
         },
       }}
     >

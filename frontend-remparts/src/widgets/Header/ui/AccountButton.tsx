@@ -19,7 +19,7 @@ export async function AccountButton() {
         href={session ? '/api/account' : '/api/login'}
         className="flex gap-0"
       >
-        {!session && <span className="hidden md:block">Вхід</span>}
+        {!session && <span className="hidden md:block">Увійти</span>}
         <User
           size={20}
           strokeWidth={1.75}

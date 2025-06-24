@@ -7,7 +7,6 @@ import { AddItemCartDto } from './dto/add-item-cart.dto';
 import Redis from 'ioredis';
 import { UserService } from 'src/user/user.service';
 import { messagesFromServer } from 'src/config/messagesFromServer';
-import { TItemReturn } from 'src/types';
 import { TItemCart } from './types';
 import { DeleteItemCartDto } from './dto/delete-item-cart.dto';
 

@@ -165,7 +165,7 @@ export class AuthService {
       const error = encodeURIComponent(messagesFromServer.auth.login.oAuthError.ua);
 
       return res.redirect(
-        `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/callback?error=${error}`,
+        `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/google/callback?error=${error}`,
       );
     }
 
@@ -191,7 +191,7 @@ export class AuthService {
     );
 
     return res.redirect(
-      `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/callback?token=${hash}`,
+      `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/google/callback?token=${hash}`,
     );
   }
 

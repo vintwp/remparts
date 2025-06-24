@@ -20,6 +20,6 @@ export default auth(req => {
 
 export const config = {
   matcher: [
-    '/api/:path((?!register$|auth/callback$|auth/confirmation(?:/.*)?$|auth/recovery(?:/.*)?$|auth/validate$).*)',
+    '/api/:path((?!register$|auth/google$|auth/google/callback$|auth/confirmation(?:/.*)?$|auth/recovery(?:/.*)?$|auth/validate$).*)',
   ],
 };
