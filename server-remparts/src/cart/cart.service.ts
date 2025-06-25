@@ -37,6 +37,9 @@ export class CartService {
       },
       include: {
         item: {
+          orderBy: {
+            addedAt: 'asc',
+          },
           select: {
             item: {
               include: {
