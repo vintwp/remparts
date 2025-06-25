@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { useDebounce } from 'use-debounce';
+
 import {
   Button,
   Input,
@@ -14,22 +14,21 @@ import {
   Separator,
   Spinner,
 } from '@/shared/ui';
-import { Item } from '@/shared/types';
+
 import { getSearch } from '../api';
 import { TSearch } from '../types';
+
 import { SearchActions } from './SearchActions';
-import { useRouter } from 'next/navigation';
-import { createURLSearchParams } from '@/shared/hooks';
 
-type Props = {};
-
-export function Search({}: Props) {
+export function Search() {
   const router = useRouter();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [searchResult, setSearchResult] = useState<TSearch | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   const createPath = (value: string) => {
     const params = new URLSearchParams();
@@ -37,7 +36,7 @@ export function Search({}: Props) {
     return params.toString();
   };
 
-  const handleActionButtonClick = () => {
+  const handleClickActionButton = () => {
     if (searchQuery.length > 0) {
       setSearchQuery('');
       setSearchResult(null);
@@ -49,8 +48,50 @@ export function Search({}: Props) {
     if (e.key === 'Enter') {
       e.preventDefault();
       setPopoverOpen(false);
-      router.push(`/search?q=${searchQuery}`);
+
+      router.push(`/search?${createPath(searchQuery)}`);
+
+      setSearchQuery('');
+      setSearchResult(null);
+
+      if (triggerRef.current) {
+        triggerRef.current.blur();
+      }
+
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
     }
+  };
+
+  const handleFocusInput = () => {
+    if (searchResult) {
+      setPopoverOpen(true);
+    }
+  };
+
+  const handleBlurInput = () => {
+    setPopoverOpen(false);
+  };
+
+  const handleClickSearchResult = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const url = e.currentTarget.getAttribute('href');
+
+    if (triggerRef.current) {
+      triggerRef.current.blur();
+    }
+
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+
+    router.push(url || '/');
+
+    setSearchQuery('');
+    setSearchResult(null);
   };
 
   useEffect(() => {
@@ -73,24 +114,24 @@ export function Search({}: Props) {
 
   return (
     <Popover open={popoverOpen}>
-      <PopoverTrigger className="w-full">
+      <PopoverTrigger
+        className="w-full focus-visible:ring-1 focus-visible:outline-0"
+        ref={triggerRef}
+      >
         <div className="relative">
           <Input
             className="h-7 w-full cursor-text bg-white p-0 pr-7 pl-2 text-sm"
             placeholder="Введіть назву товару або його код"
             onChange={e => setSearchQuery(e.target.value)}
+            ref={inputRef}
             value={searchQuery}
-            onBlur={() => setPopoverOpen(false)}
+            onBlur={handleBlurInput}
             onKeyDown={handleKeyDown}
-            onFocus={() => {
-              if (searchResult) {
-                setPopoverOpen(true);
-              }
-            }}
+            onFocus={handleFocusInput}
           />
           <SearchActions
             isEmpty={searchQuery.length === 0}
-            onClick={handleActionButtonClick}
+            onClick={handleClickActionButton}
           />
         </div>
       </PopoverTrigger>
@@ -113,6 +154,7 @@ export function Search({}: Props) {
                 <Link
                   href={`/search?query=${result.id}`}
                   className="block"
+                  onClick={handleClickSearchResult}
                 >
                   {result.name}
                 </Link>
@@ -126,8 +168,9 @@ export function Search({}: Props) {
                 asChild
               >
                 <Link
-                  href={`../search?${createPath(searchQuery)}`}
+                  href={`/search?${createPath(searchQuery)}`}
                   className="block"
+                  onClick={handleClickSearchResult}
                 >
                   Показати всі результати
                 </Link>
