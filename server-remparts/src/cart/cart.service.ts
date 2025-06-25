@@ -92,6 +92,7 @@ export class CartService {
     try {
       const redisKey = `cart-${userEmail}`;
       await this.redisClient.del(redisKey);
+
       await this.prismaService.client.cart.update({
         where: {
           userEmail,
@@ -127,7 +128,15 @@ export class CartService {
         message: messagesFromServer.cart.addSuccess.ua,
       };
     } catch (error) {
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw new InternalServerErrorException(messagesFromServer.cart.invalidId.ua);
+      }
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2017') {
+          throw new InternalServerErrorException(messagesFromServer.cart.addError.ua);
+        }
+
         if (error.code === 'P2025') {
           throw new InternalServerErrorException(messagesFromServer.cart.invalidId.ua);
         }

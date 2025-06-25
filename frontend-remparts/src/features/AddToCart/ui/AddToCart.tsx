@@ -3,7 +3,6 @@
 import { CircleCheckBig, Clock, ShoppingCart } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { mutate } from 'swr';
 
 import { addToCart, deleteFromCart, mutateCart } from '@/entities/cart';
 import { useCart } from '@/entities/cart/hooks/useCart';

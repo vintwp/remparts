@@ -67,9 +67,16 @@ export class MeiliService implements OnApplicationBootstrap {
         limit: 999,
       })) as SearchResponse<TItem>;
 
-      searchedItems = [...hits];
+      const hitsWithNumberedId = [...hits].map(hit => {
+        return {
+          ...hit,
+          id: +hit.id,
+        };
+      });
 
-      await this.redisClient.setex(cacheKeyRedis, 3600, JSON.stringify(hits));
+      searchedItems = [...hitsWithNumberedId];
+
+      await this.redisClient.setex(cacheKeyRedis, 3600, JSON.stringify(hitsWithNumberedId));
     }
 
     return searchedItems;
