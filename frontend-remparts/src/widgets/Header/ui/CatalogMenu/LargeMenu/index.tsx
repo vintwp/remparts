@@ -8,7 +8,9 @@ import {
   NavigationMenuViewport,
   Triangle,
 } from '@/shared/ui';
+
 import { Menu } from '../../../types';
+
 import { PopoverRoot } from './PopoverRoot';
 
 type Props = {
@@ -76,7 +78,7 @@ export function LargeMenu({ departments }: Props) {
                             {col.map(cat => (
                               <NavigationMenuLink
                                 key={`col-cat-${cat.name}`}
-                                href={`.././${dep.url}/${cat.url}`}
+                                href={`/${dep.url}/${cat.url}`}
                                 className="px-4 underline-offset-2 hover:underline"
                               >
                                 {cat.name}

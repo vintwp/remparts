@@ -1,7 +1,10 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button } from '@/shared/ui';
-import { MobileMenuRoot } from './MobileMenuRoot';
-import { Menu } from '../../../types';
 import Link from 'next/link';
+
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button } from '@/shared/ui';
+
+import { Menu } from '../../../types';
+
+import { MobileMenuRoot } from './MobileMenuRoot';
 
 type Props = {
   departments: Menu[];
@@ -34,7 +37,7 @@ export function MobileMenu({ departments }: Props) {
                         className="h-max leading-[1.5] whitespace-normal"
                         asChild
                       >
-                        <Link href={`.././${dep.url}/${cat.url}`}>{cat.name}</Link>
+                        <Link href={`/${dep.url}/${cat.url}`}>{cat.name}</Link>
                       </Button>
                     ))}
                   </div>
