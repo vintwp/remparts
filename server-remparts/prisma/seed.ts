@@ -12,4 +12,12 @@ const seed = async () => {
   await createItems();
 };
 
-seed();
+seed()
+  .then(() => {
+    console.log('✅ Seeding completed');
+    process.exit(0);
+  })
+  .catch(e => {
+    console.error('❌ Seeding failed ', e);
+    process.exit(1);
+  });

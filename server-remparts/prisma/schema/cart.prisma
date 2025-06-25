@@ -13,6 +13,7 @@ model CartToItem {
   item        Item @relation(fields: [itemId], references: [id])
   itemId      Int
   itemQty     Int @default(1) @map("item_qty")
+  addedAt     DateTime  @default(now()) @map("added_at")
 
   @@map("_cart_to_item")
   @@id([cartEmail, itemId])

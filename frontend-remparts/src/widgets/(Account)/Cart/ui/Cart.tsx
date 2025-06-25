@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { mutate } from 'swr';
 
 import { addToCart, deleteFromCart } from '@/entities/cart';
 import { mutateCart } from '@/entities/cart';
