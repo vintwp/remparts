@@ -1,11 +1,19 @@
 import { Request } from 'express';
 import * as bcrypt from 'bcrypt';
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from 'src/prisma.extension';
 import { isDev } from 'src/lib/utils';
 import { ConfigService } from '@nestjs/config';
+import { messagesFromServer } from 'src/config/messagesFromServer';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -20,21 +28,11 @@ export class UserService {
   ): Promise<Omit<User, 'password'>> {
     const { email, password, ...restParams } = data;
 
-    const isExistEmail = await this.prismaService.client.user.findUnique({
-      where: {
-        email,
-      },
-    });
-
-    if (isExistEmail) {
-      throw new ConflictException('User with this email is exist. Try to use another email');
-    }
-
     const { password: userPassword, ...rest } = await this.prismaService.client.user.create({
       data: {
         email,
         password: password ? await bcrypt.hash(password, 10) : '',
-        isVerified: isDev(this.configService),
+        isVerifiedEmail: isDev(this.configService),
         cart: {
           create: {},
         },
@@ -53,14 +51,119 @@ export class UserService {
       },
     });
   }
-
-  async updateUser(email: string, data: Partial<User>) {
-    return await this.prismaService.client.user.update({
+  async getById(id: number): Promise<User | null> {
+    return this.prismaService.client.user.findUnique({
       where: {
-        email,
+        id,
+      },
+    });
+  }
+
+  async updateUser(
+    id: number,
+    data: Partial<Omit<User, 'city' | 'warehouse'> & Pick<UpdateUserDto, 'city' | 'warehouse'>>,
+  );
+  async updateUser(
+    email: string,
+    data: Partial<Omit<User, 'city' | 'warehouse'> & Pick<UpdateUserDto, 'city' | 'warehouse'>>,
+  );
+  async updateUser(
+    idOrEmail: string | number,
+    data: Partial<Omit<User, 'city' | 'warehouse'> & Pick<UpdateUserDto, 'city' | 'warehouse'>>,
+  ): Promise<Omit<User, 'password'>> {
+    if (typeof idOrEmail === 'number') {
+      const { password, ...rest } = await this.prismaService.client.user.update({
+        where: {
+          id: idOrEmail,
+        },
+        data,
+      });
+
+      return rest;
+    }
+
+    const { password, ...rest } = await this.prismaService.client.user.update({
+      where: {
+        email: idOrEmail,
       },
       data,
     });
+
+    return rest;
+  }
+
+  // TODO: add new tokens when email was updated
+
+  async updateUserData(id: string, dto: UpdateUserDto) {
+    const { currentPassword, newPassword, email: newEmail, phoneNumber, ...data } = dto;
+    const dataToUpdate = data as Partial<
+      Omit<User, 'city' | 'warehouse'> & Pick<UpdateUserDto, 'city' | 'warehouse'>
+    >;
+
+    const user = await this.getById(+id);
+
+    if (!user) throw new UnauthorizedException(messagesFromServer.user.notFound.ua);
+
+    if (newEmail) {
+      const isUserExist = await this.getByEmail(newEmail);
+
+      if (isUserExist && isUserExist.id !== +id) {
+        throw new ConflictException(messagesFromServer.user.existEmail.ua);
+      }
+
+      dataToUpdate.email = newEmail;
+    }
+
+    if (phoneNumber) {
+      const isPhoneNumberExist = await this.prismaService.client.user.findUnique({
+        where: {
+          phoneNumber,
+        },
+      });
+
+      if (isPhoneNumberExist && phoneNumber !== user.phoneNumber) {
+        throw new ConflictException(messagesFromServer.user.existPhoneNumber.ua);
+      }
+
+      dataToUpdate.phoneNumber = phoneNumber;
+    }
+
+    // if current password and new password provided
+    if ((!currentPassword && newPassword) || (currentPassword && !newPassword))
+      throw new NotFoundException(messagesFromServer.user.oldOrNewPasswordWasNotProvided.ua);
+
+    if (currentPassword && newPassword) {
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+      if (!isPasswordValid)
+        throw new NotFoundException(messagesFromServer.user.incorrectPassword.ua);
+
+      const password = await bcrypt.hash(newPassword, 10);
+
+      dataToUpdate.password = password;
+    }
+
+    /**
+      if all necessary data for shipping was provided 
+      - update isPersonalDataRequired to avoid redirect to account update page
+    */
+
+    const isPersonalDataCompleted = Boolean(
+      (data.firstName || user.firstName) &&
+        (data.lastName || user.lastName) &&
+        // (data.city || user.city) &&
+        // (data.warehouse || user.warehouse) &&
+        (phoneNumber || user.phoneNumber),
+    );
+
+    dataToUpdate.isPersonalDataFilled = isPersonalDataCompleted;
+
+    const updatedUser = await this.updateUser(+id, dataToUpdate);
+
+    return {
+      message: messagesFromServer.user.success.ua,
+      data: updatedUser,
+    };
   }
 
   async getAllUsers() {

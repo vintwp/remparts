@@ -1,6 +1,7 @@
 model ExchangeRate {
-  id    Int @id @default(1) @map("exchangerate_id")
-  value Float @default(1.0)
+  id          Int @id @default(1) @map("exchangerate_id")
+  value       Float @default(1.0)
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("exchange_rate")
 }

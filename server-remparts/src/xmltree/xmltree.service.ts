@@ -24,7 +24,6 @@ export class XmltreeService {
 
     const filePath = path.join(`${process.cwd()}/src/asset`, 'price.xml');
     const xmlData = fs.readFileSync(filePath);
-    console.log(filePath);
 
     const parser = new XMLParser({
       textNodeName: 'value',

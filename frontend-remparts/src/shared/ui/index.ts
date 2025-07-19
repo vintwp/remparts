@@ -28,6 +28,17 @@ import {
 } from './Carousel';
 import { Checkbox } from './Checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './Collapsible';
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from './Command';
 import { Container } from './Container';
 import {
   Dialog,
@@ -194,4 +205,13 @@ export {
   CardContent,
   Label,
   Toaster,
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
 };

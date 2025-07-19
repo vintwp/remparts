@@ -1,3 +1,3 @@
-import type { Role } from './model';
+import { getUser, updateUser } from './api';
 
-export { type Role };
+export { getUser, updateUser };

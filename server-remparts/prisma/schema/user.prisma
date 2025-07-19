@@ -12,21 +12,27 @@ enum CustomerPriceTier {
 }
 
 model User {
-  id                  Int       @id @default(autoincrement())
-  oauthId             String?   @unique
-  email               String    @unique
-  password            String?
-  name                String?   
-  adress              String?
-  phoneNumber         String?   @map("phone_number")
-  role                Role      @default(USER)
-  cart                Cart?
-  order               Order[]
-  isVerified          Boolean   @default(false) @map("is_verified")
-  id1c                String?   @unique
-  customerPriceTier   CustomerPriceTier @default(RETAIL) @map("customer_price_tier")
-  createdAt           DateTime  @default(now()) @map("created_at")
-  updatedAt           DateTime  @updatedAt      @map("updated_at")
+  id                      Int               @id @default(autoincrement())
+  oauthId                 String?           @unique
+  email                   String            @unique
+  password                String?
+  firstName               String?           @map("first_name")
+  lastName                String?           @map("last_name")
+  patronymicName          String?           @map("patronymic_name")
+  area                    Json?
+  city                    Json?
+  warehouse               Json?
+  phoneNumber             String?           @unique @map("phone_number")
+  role                    Role              @default(USER)
+  cart                    Cart?
+  order                   Order[]
+  isVerifiedEmail         Boolean           @default(false) @map("is_verified_email")
+  isBanned                Boolean           @default(false) @map("is_banned")
+  isPersonalDataFilled    Boolean           @default(false) @map("is_personal_data_filled")
+  id1c                    String?           @unique
+  customerPriceTier       CustomerPriceTier @default(RETAIL) @map("customer_price_tier")
+  createdAt               DateTime          @default(now()) @map("created_at")
+  updatedAt               DateTime          @updatedAt      @map("updated_at")
 
   @@map("user")
 }

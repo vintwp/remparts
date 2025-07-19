@@ -1,3 +1,3 @@
-import { cartFetcher, useCart } from './useCart';
+import { useCart } from './useCart';
 
-export { useCart, cartFetcher };
+export { useCart };

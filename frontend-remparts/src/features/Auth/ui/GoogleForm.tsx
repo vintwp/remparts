@@ -74,6 +74,7 @@ export function GoogleForm({ disabled = false }: Props) {
     return () => {
       window.removeEventListener('message', handleModalWindowMessage);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

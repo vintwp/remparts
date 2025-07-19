@@ -1,8 +1,9 @@
-import { Pagination } from './Pagination';
 import { FilterBy } from './FilterBy';
-import { ShowStock } from './ShowStock';
+import { Pagination } from './Pagination';
 import { PerPage } from './PerPage';
-import { SortBy } from './SortBy';
 import { Search } from './Search';
+import { SelectShipping } from './SelectShipping';
+import { ShowStock } from './ShowStock';
+import { SortBy } from './SortBy';
 
-export { Pagination, FilterBy, ShowStock, PerPage, SortBy, Search };
+export { Pagination, FilterBy, ShowStock, PerPage, SortBy, Search, SelectShipping };

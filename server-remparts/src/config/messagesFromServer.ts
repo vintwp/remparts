@@ -1,3 +1,6 @@
+import e from 'express';
+import { access } from 'fs';
+
 export const messagesFromServer = {
   auth: {
     login: {
@@ -12,6 +15,10 @@ export const messagesFromServer = {
       oAuthError: {
         en: 'Google authentication error. Please try again later.',
         ua: 'Помилка аутентифікації Google. Будь ласка, спробуйте ще раз.',
+      },
+      isBanned: {
+        en: 'Access denied. Please contact support.',
+        ua: 'Відмовлено в доступі. Будь ласка, зв’яжіться з підтримкою.',
       },
     },
 
@@ -64,6 +71,7 @@ export const messagesFromServer = {
       },
     },
   },
+
   cart: {
     addSuccess: {
       en: 'Item was successfully added to cart',
@@ -88,6 +96,68 @@ export const messagesFromServer = {
     empty: {
       en: 'Your cart is empty',
       ua: 'Ваш кошик порожній',
+    },
+  },
+
+  user: {
+    notFound: {
+      en: 'User not found',
+      ua: 'Користувача не знайдено',
+    },
+    incorrectPassword: {
+      en: 'The current password is incorrect',
+      ua: 'Неправильний поточний пароль користувача',
+    },
+    oldOrNewPasswordWasNotProvided: {
+      en: 'The current password is incorrect or the new password was not provided',
+      ua: 'Неправильний поточний пароль користувача або новий пароль не був заданий',
+    },
+    existEmail: {
+      en: 'This email is already in use. Please use a different email address.',
+      ua: 'Ця електронна адреса вже використовується. Будь ласка, введіть іншу адресу.',
+    },
+    existPhoneNumber: {
+      en: 'This phone number is already in use. Please use a different phone number.',
+      ua: 'Цей номер телефону вже використовується. Будь ласка, введіть інший номер телефону.',
+    },
+    success: {
+      en: 'User updated successfully',
+      ua: 'Користувача успішно оновлено',
+    },
+  },
+
+  geo: {
+    cityNotFound: {
+      en: 'City not found',
+      ua: 'Міста не знайдено',
+    },
+    areaNotFound: {
+      en: 'Area not found',
+      ua: 'Регіон/Область не знайдено',
+    },
+    apiError: {
+      en: 'Getting data error',
+      ua: 'Помилка при отриманні даних',
+    },
+    noData: {
+      en: 'No data',
+      ua: 'Немає даних',
+    },
+  },
+
+  general: {
+    accessDenied: {
+      en: 'Access denied',
+      ua: 'Доступ заборонено',
+    },
+    incorrectRequestParameters: {
+      en: 'Incorrect request parameters',
+      ua: 'Неправильні параметри запиту',
+    },
+
+    internalServerError: {
+      en: 'Internal server error',
+      ua: 'Внутрішня помилка сервера',
     },
   },
 };

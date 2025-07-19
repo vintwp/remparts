@@ -56,7 +56,7 @@ export class EmailConfirmationService {
       throw new NotFoundException(messagesFromServer.auth.login.notFound.ua);
     }
 
-    await this.userService.updateUser(existUser.email, { isVerified: true });
+    await this.userService.updateUser(existUser.email, { isVerifiedEmail: true });
 
     await this.prismaService.client.emailToken.delete({
       where: {

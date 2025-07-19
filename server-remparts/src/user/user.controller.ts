@@ -1,26 +1,34 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-// import { ROLE, Roles } from 'src/auth/decorators/roles.decorator';
+import { Body, Controller, Get, Param, Patch, Req } from '@nestjs/common';
 import { UserService } from './user.service';
-// import { Authorized } from 'src/auth/decorators/authorized.decorator';
-import { User } from '@prisma/client';
-// import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-// import { RolesAuthGuard } from 'src/auth/guards/roles-auth.guard';
+
 import { Request } from 'express';
+import { IsAuthorized } from 'src/auth/decorators/is-authorized.decorator';
+import { ValidateUserAccessById } from 'src/auth/decorators/validate-user-access-by-id.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // @UseGuards(JwtAuthGuard)
-  @Get('loggedin')
-  // getLoggedIn(@Authorized() user: User) {
-  //   return user;
-  // }
-
-  // @UseGuards(JwtAuthGuard, RolesAuthGuard)
-  // @Roles(ROLE.admin)
+  @IsAuthorized('ADMIN')
   @Get()
-  getAllUsers(@Req() req: Request) {
+  async getAllUsers() {
     return this.userService.getAllUsers();
+  }
+
+  @ValidateUserAccessById()
+  @IsAuthorized()
+  @Patch(':id')
+  async updateUserData(@Param('id') id: string, @Body() body: UpdateUserDto) {
+    return this.userService.updateUserData(id, body);
+  }
+
+  @ValidateUserAccessById()
+  @IsAuthorized()
+  @Get(':id')
+  async getUser(@Param('id') id: string) {
+    const { password, ...rest } = await this.userService.getById(+id);
+
+    return rest;
   }
 }

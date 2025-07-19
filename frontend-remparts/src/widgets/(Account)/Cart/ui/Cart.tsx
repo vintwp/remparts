@@ -21,8 +21,6 @@ export function Cart() {
 
   const cartFromSwr = useCart(auth?.access_token);
 
-  console.log('cartFromSwr', cartFromSwr);
-
   if (!cartFromSwr.cart) {
     return <div className="relative flex h-full flex-col gap-4">В корзині немає товарів</div>;
   }

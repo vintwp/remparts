@@ -1,10 +1,9 @@
 import NextAuth, { AuthError, User } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
-import { type Role } from '@/entities/user';
-
 import { fetch } from '@/shared/api';
 import { AUTH_GOOGLE_OAUTH_CALLBACK_API, AUTH_LOGIN_API, AUTH_SECRET } from '@/shared/config';
+import { UserRole as Role } from '@/shared/types';
 
 type TCredentials = {
   email: string;
@@ -13,7 +12,7 @@ type TCredentials = {
 };
 
 type TResponseUser = {
-  user: Pick<User, 'email'> & { role: Role };
+  user: Pick<User, 'email' | 'id'> & { role: Role };
   access_token: string;
   refresh_token: string;
 };
@@ -97,13 +96,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const { email, role, access_token, refresh_token } = user;
+        const { id, email, role, access_token, refresh_token } = user;
 
         return {
           ...token,
+          id,
+          email,
           access_token,
           refresh_token,
-          email,
           role,
         };
       }
@@ -113,12 +113,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       const userFromSession = session.user;
 
+      if (!token.id || !token.email || !token.role || !token.access_token) {
+        throw new AuthError('Missed id, email, role or access_token in session');
+      }
+
       session.user = {
         ...userFromSession,
+        id: token.id,
         role: token.role,
       };
 
       session.access_token = token.access_token;
+
       return session;
     },
     async authorized({ auth }) {

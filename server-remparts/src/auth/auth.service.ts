@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -52,22 +53,11 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  private setCookie(res: Response, cookieName: CookieName, cookieValue: string, expiresIn: number) {
-    res.cookie(cookieName, cookieValue, {
-      domain: this.COOKIE_DOMAIN,
-      httpOnly: true,
-      sameSite: isDev(this.configService) ? 'none' : 'lax',
-      secure: false,
-      maxAge: expiresIn,
-      path: cookiePath[cookieName] || '/',
-    });
-  }
-
   private auth(res: Response, user: JwtPayload) {
     const { accessToken, refreshToken } = this.generateJwtToken(user);
 
     return {
-      user: { email: user.email, role: user.role },
+      user: { id: `${user.id}`, email: user.email, role: user.role },
       access_token: accessToken,
       refresh_token: refreshToken,
     };
@@ -106,10 +96,14 @@ export class AuthService {
       throw new NotFoundException(messagesFromServer.auth.login.notFound.ua);
     }
 
-    if (!user.isVerified) {
+    if (!user.isVerifiedEmail) {
       await this.emailConfirmationService.sendVerificationToken(user);
 
       throw new UnauthorizedException(messagesFromServer.auth.login.unverified.ua);
+    }
+
+    if (user.isBanned) {
+      throw new ForbiddenException(messagesFromServer.auth.login.isBanned.ua);
     }
 
     const authData = await this.auth(res, {
@@ -146,10 +140,7 @@ export class AuthService {
     }
   }
 
-  async logout(res: Response) {
-    this.setCookie(res, 'access_token', '', 0);
-    this.setCookie(res, 'refresh_token', '', 0);
-  }
+  async logout(res: Response) {}
 
   async loginForGoogle(userFromGoogle: GoogleAuthPayload, res: Response) {
     const HASH_TTL = 180;
@@ -173,8 +164,7 @@ export class AuthService {
       const { id, email, role } = await this.userService.createUser({
         oauthId: userFromGoogle.id,
         email: userFromGoogle.email,
-        name: userFromGoogle.name,
-        isVerified: true,
+        isVerifiedEmail: true,
       });
 
       await this.redisClient.setex(hash, HASH_TTL, JSON.stringify({ id, email, role }));

@@ -22,6 +22,7 @@ import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { CurrencyModule } from './currency/currency.module';
 import { CartModule } from './cart/cart.module';
+import { ShippingModule } from './shipping/shipping.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CartModule } from './cart/cart.module';
     MailModule,
     CurrencyModule,
     CartModule,
+    ShippingModule,
   ],
   controllers: [AppController],
   providers: [AppService, HashService],
