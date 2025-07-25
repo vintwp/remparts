@@ -17,6 +17,7 @@ import { CartItem } from './CartItem';
 export function Cart() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { exchangeRate } = useExchangeRate();
+
   const { auth } = useAuth();
 
   const cartFromSwr = useCart(auth?.access_token);

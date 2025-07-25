@@ -1,6 +1,6 @@
+import { fetch } from '@/shared/api';
 import { DEPARTMENT_API } from '@/shared/config';
 import { Department } from '@/shared/types';
-import { fetch } from '@/shared/api';
 
 const getDepartments = async <T = undefined>(withCategories: boolean = false) => {
   const params = withCategories ? '?category=true' : '';

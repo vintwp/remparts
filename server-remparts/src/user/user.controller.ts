@@ -27,8 +27,10 @@ export class UserController {
   @IsAuthorized()
   @Get(':id')
   async getUser(@Param('id') id: string) {
-    const { password, ...rest } = await this.userService.getById(+id);
+    const {
+      data: { password, ...rest },
+    } = await this.userService.getById(+id);
 
-    return rest;
+    return { data: rest };
   }
 }

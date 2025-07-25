@@ -1,8 +1,6 @@
 'use client';
 
-import { DevTool } from '@hookform/devtools';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -269,8 +267,6 @@ export function UpdateUserData() {
           </div>
         </div>
       </form>
-
-      <DevTool control={control} />
     </div>
   );
 }

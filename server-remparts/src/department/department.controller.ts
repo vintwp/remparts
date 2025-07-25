@@ -35,7 +35,7 @@ export class DepartmentController {
       }),
     )
     category: boolean,
-  ): Promise<Department[]> {
+  ) {
     return this.departmentService.getAll(category);
   }
 

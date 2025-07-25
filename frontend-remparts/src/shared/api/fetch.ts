@@ -60,35 +60,9 @@ class Fetch {
     }
   }
 
-  // TODO getData fix typing in server and client side - matching
   async getData<T>(url: string, config: RequestInit = {}): Promise<FetchResponse<T>> {
-    return fetch(url, { method: 'GET', ...config })
-      .then(async response => {
-        if (!response.ok) {
-          throw new ErrorApi(response.statusText, response.status);
-        }
-
-        return response.json().then(data => ({ data, message: response.statusText }));
-      })
-      .then(data => {
-        return {
-          ok: true as const,
-          data: data.data as T,
-          message: data.message,
-        };
-      })
-      .catch(error => {
-        if (error instanceof ErrorApi) {
-          return { ok: false, status: error.status, message: error.message };
-        } else {
-          return { ok: false, status: 500, message: 'Unexpected internal error' };
-        }
-      });
+    return this.fetchData<T>(url, {}, config, 'GET');
   }
-
-  // async getData<T>(url: string, config: RequestInit = {}): Promise<FetchResponse<T>> {
-  //   return this.fetchData<T>(url, {}, config, 'GET');
-  // }
 
   async postData<T, K = Record<string, JsonValue>>(
     url: string,

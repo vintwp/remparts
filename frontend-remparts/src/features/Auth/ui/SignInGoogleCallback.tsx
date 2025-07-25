@@ -34,6 +34,7 @@ function SignInGoogle() {
     }
 
     if (token) {
+      debugger;
       login(token);
     }
   }, [router, searchParams]);

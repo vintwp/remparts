@@ -58,9 +58,11 @@ export class SearchService implements OnApplicationBootstrap {
     );
 
     return {
-      items: mappedItemsWithTierPrice,
-      pagination,
-      categories,
+      data: {
+        items: mappedItemsWithTierPrice,
+        pagination,
+        categories,
+      },
     };
   }
 
