@@ -17,7 +17,7 @@ export class CurrencyService {
   async get() {
     const currencyFromRedis = await this.redisClient.get(this.redisCacheKey);
 
-    if (currencyFromRedis) return +currencyFromRedis;
+    if (currencyFromRedis) return { data: JSON.parse(currencyFromRedis) };
 
     const currencyFromDb = await this.prisma.client.exchangeRate.findFirst({
       where: {
@@ -25,9 +25,9 @@ export class CurrencyService {
       },
     });
 
-    await this.redisClient.set(this.redisCacheKey, currencyFromDb.value);
+    await this.redisClient.set(this.redisCacheKey, JSON.stringify(currencyFromDb.value));
 
-    return currencyFromDb.value;
+    return { data: currencyFromDb.value };
   }
 
   async update(updateCurrencyDto: UpdateCurrencyDto) {
@@ -42,6 +42,6 @@ export class CurrencyService {
       },
     });
 
-    return updatedCurrency.value;
+    return { data: updatedCurrency.value };
   }
 }

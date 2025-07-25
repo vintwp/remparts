@@ -50,13 +50,13 @@ export class EmailConfirmationService {
       throw new NotFoundException(messagesFromServer.auth.confirm.expired.ua);
     }
 
-    const existUser = await this.userService.getByEmail(isExistToken.email);
+    const { data: existUserData } = await this.userService.getByEmail(isExistToken.email);
 
-    if (!existUser) {
+    if (!existUserData) {
       throw new NotFoundException(messagesFromServer.auth.login.notFound.ua);
     }
 
-    await this.userService.updateUser(existUser.email, { isVerifiedEmail: true });
+    await this.userService.updateUser(existUserData.email, { isVerifiedEmail: true });
 
     await this.prismaService.client.emailToken.delete({
       where: {

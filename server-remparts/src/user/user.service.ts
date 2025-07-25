@@ -44,19 +44,27 @@ export class UserService {
     return rest;
   }
 
-  async getByEmail(email: string): Promise<User | null> {
-    return this.prismaService.client.user.findUnique({
+  async getByEmail(email: string): Promise<{ data: User | null }> {
+    const user = await this.prismaService.client.user.findUnique({
       where: {
         email,
       },
     });
+
+    return {
+      data: user,
+    };
   }
-  async getById(id: number): Promise<User | null> {
-    return this.prismaService.client.user.findUnique({
+  async getById(id: number): Promise<{ data: User | null }> {
+    const user = await this.prismaService.client.user.findUnique({
       where: {
         id,
       },
     });
+
+    return {
+      data: user,
+    };
   }
 
   async updateUser(
@@ -100,12 +108,12 @@ export class UserService {
       Omit<User, 'city' | 'warehouse'> & Pick<UpdateUserDto, 'city' | 'warehouse'>
     >;
 
-    const user = await this.getById(+id);
+    const { data: userData } = await this.getById(+id);
 
-    if (!user) throw new UnauthorizedException(messagesFromServer.user.notFound.ua);
+    if (!userData) throw new UnauthorizedException(messagesFromServer.user.notFound.ua);
 
     if (newEmail) {
-      const isUserExist = await this.getByEmail(newEmail);
+      const { data: isUserExist } = await this.getByEmail(newEmail);
 
       if (isUserExist && isUserExist.id !== +id) {
         throw new ConflictException(messagesFromServer.user.existEmail.ua);
@@ -121,7 +129,7 @@ export class UserService {
         },
       });
 
-      if (isPhoneNumberExist && phoneNumber !== user.phoneNumber) {
+      if (isPhoneNumberExist && phoneNumber !== userData.phoneNumber) {
         throw new ConflictException(messagesFromServer.user.existPhoneNumber.ua);
       }
 
@@ -133,7 +141,7 @@ export class UserService {
       throw new NotFoundException(messagesFromServer.user.oldOrNewPasswordWasNotProvided.ua);
 
     if (currentPassword && newPassword) {
-      const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      const isPasswordValid = await bcrypt.compare(currentPassword, userData.password);
 
       if (!isPasswordValid)
         throw new NotFoundException(messagesFromServer.user.incorrectPassword.ua);
@@ -149,11 +157,11 @@ export class UserService {
     */
 
     const isPersonalDataCompleted = Boolean(
-      (data.firstName || user.firstName) &&
-        (data.lastName || user.lastName) &&
+      (data.firstName || userData.firstName) &&
+        (data.lastName || userData.lastName) &&
         // (data.city || user.city) &&
         // (data.warehouse || user.warehouse) &&
-        (phoneNumber || user.phoneNumber),
+        (phoneNumber || userData.phoneNumber),
     );
 
     dataToUpdate.isPersonalDataFilled = isPersonalDataCompleted;

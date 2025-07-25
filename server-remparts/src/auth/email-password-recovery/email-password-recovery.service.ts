@@ -23,13 +23,13 @@ export class EmailPasswordRecoveryService {
   ) {}
 
   async recoveryPassword(dto: ResetPasswordDto): Promise<{ message: string }> {
-    const isExistUser = await this.userService.getByEmail(dto.email);
+    const { data: existUserData } = await this.userService.getByEmail(dto.email);
 
-    if (!isExistUser) {
+    if (!existUserData) {
       throw new NotFoundException(messagesFromServer.auth.recovery.notFound.ua);
     }
 
-    const recoveryPasswordToken = await this.generatePasswordRecoveryToken(isExistUser.email);
+    const recoveryPasswordToken = await this.generatePasswordRecoveryToken(existUserData.email);
 
     await this.mailService.sendResetPasswordEmail(
       recoveryPasswordToken.email,
@@ -59,13 +59,13 @@ export class EmailPasswordRecoveryService {
       throw new NotFoundException(messagesFromServer.auth.recovery.tokenExpired);
     }
 
-    const existUser = await this.userService.getByEmail(isExistToken.email);
+    const { data: existUserData } = await this.userService.getByEmail(isExistToken.email);
 
-    if (!existUser) {
+    if (!existUserData) {
       throw new NotFoundException(messagesFromServer.auth.recovery.notFound);
     }
 
-    await this.userService.updateUser(existUser.email, {
+    await this.userService.updateUser(existUserData.email, {
       password: await bcrypt.hash(dto.password, 10),
     });
 

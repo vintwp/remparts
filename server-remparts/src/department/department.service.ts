@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { createUrl } from '../lib/utils';
+import { Department } from '@prisma/client';
+import Redis from 'ioredis';
 
 @Injectable()
 export class DepartmentService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
+  ) {}
 
   async create(createDepartmentDto: CreateDepartmentDto) {
     const maxOrder = await this.prisma.department.aggregate({
@@ -26,8 +31,14 @@ export class DepartmentService {
     return department;
   }
 
-  async getAll(includeCategories?: boolean) {
-    const department = await this.prisma.department.findMany({
+  async getAll(includeCategories?: boolean): Promise<{ data: Department[] }> {
+    const redisKey = `departments-all`;
+
+    const departmentsFromRedis = await this.redisClient.get(redisKey);
+
+    if (departmentsFromRedis) return { data: JSON.parse(departmentsFromRedis) };
+
+    const departments = await this.prisma.department.findMany({
       include: {
         category: includeCategories
           ? {
@@ -39,10 +50,18 @@ export class DepartmentService {
       },
     });
 
-    return department;
+    await this.redisClient.setex(redisKey, 7 * 12 * 3600, JSON.stringify(departments));
+
+    return { data: departments };
   }
 
-  async getByUrl(departmentUrl: string, categories: boolean) {
+  async getByUrl(departmentUrl: string, categories: boolean): Promise<{ data: Department }> {
+    const redisKey = `departments-${departmentUrl}`;
+
+    const departmentFromRedis = await this.redisClient.get(redisKey);
+
+    if (departmentFromRedis) return { data: JSON.parse(departmentFromRedis) };
+
     const department = await this.prisma.department.findUnique({
       where: {
         url: departmentUrl,
@@ -56,7 +75,9 @@ export class DepartmentService {
       },
     });
 
-    return department;
+    await this.redisClient.setex(redisKey, 7 * 12 * 3600, JSON.stringify(department));
+
+    return { data: department };
   }
 
   async update(id: number, updateDepartmentDto: UpdateDepartmentDto) {

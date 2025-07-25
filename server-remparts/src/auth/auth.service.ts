@@ -13,11 +13,9 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UserService } from 'src/user/user.service';
 import { ConfigService } from '@nestjs/config';
-import { isDev } from 'src/lib/utils';
 import { GoogleAuthPayload } from './types/googlePayload';
 import { JwtPayload } from './types/jwtPayload';
 import { EmailConfirmationService } from './email-confirmation/email-confirmation.service';
-import { cookiePath, type CookieName } from './types/cookie';
 import { messagesFromServer } from '../config/messagesFromServer';
 import { v4 as uuidv4 } from 'uuid';
 import Redis from 'ioredis';
@@ -84,33 +82,33 @@ export class AuthService {
 
   async login(res: Response, data: LoginDto) {
     const { email, password } = data;
-    const user = await this.userService.getByEmail(email);
+    const { data: userData } = await this.userService.getByEmail(email);
 
-    if (!user) {
+    if (!userData) {
       throw new NotFoundException(messagesFromServer.auth.login.notFound.ua);
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, userData.password);
 
     if (!isPasswordValid) {
       throw new NotFoundException(messagesFromServer.auth.login.notFound.ua);
     }
 
-    if (!user.isVerifiedEmail) {
-      await this.emailConfirmationService.sendVerificationToken(user);
+    if (!userData.isVerifiedEmail) {
+      await this.emailConfirmationService.sendVerificationToken(userData);
 
       throw new UnauthorizedException(messagesFromServer.auth.login.unverified.ua);
     }
 
-    if (user.isBanned) {
+    if (userData.isBanned) {
       throw new ForbiddenException(messagesFromServer.auth.login.isBanned.ua);
     }
 
     const authData = await this.auth(res, {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      customerPriceTier: user.customerPriceTier,
+      id: userData.id,
+      email: userData.email,
+      role: userData.role,
+      customerPriceTier: userData.customerPriceTier,
     });
 
     return { data: authData };
@@ -127,15 +125,15 @@ export class AuthService {
     const payload: JwtPayload = await this.jwtService.verifyAsync(refreshToken);
 
     if (payload) {
-      const user = await this.userService.getByEmail(payload.email);
+      const { data: userData } = await this.userService.getByEmail(payload.email);
 
-      if (!user) throw new NotFoundException('User not found');
+      if (!userData) throw new NotFoundException('User not found');
 
       return this.auth(res, {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        customerPriceTier: user.customerPriceTier,
+        id: userData.id,
+        email: userData.email,
+        role: userData.role,
+        customerPriceTier: userData.customerPriceTier,
       });
     }
   }
@@ -146,13 +144,13 @@ export class AuthService {
     const HASH_TTL = 180;
 
     const hash = uuidv4();
-    const user = await this.userService.getByEmail(userFromGoogle.email);
+    const { data: userData } = await this.userService.getByEmail(userFromGoogle.email);
 
-    if (user && !user.oauthId) {
-      await this.userService.updateUser(user.email, { oauthId: userFromGoogle.id });
+    if (userData && !userData.oauthId) {
+      await this.userService.updateUser(userData.email, { oauthId: userFromGoogle.id });
     }
 
-    if (user && user.oauthId !== userFromGoogle.id) {
+    if (userData && userData.oauthId !== userFromGoogle.id) {
       const error = encodeURIComponent(messagesFromServer.auth.login.oAuthError.ua);
 
       return res.redirect(
@@ -160,7 +158,7 @@ export class AuthService {
       );
     }
 
-    if (!user) {
+    if (!userData) {
       const { id, email, role } = await this.userService.createUser({
         oauthId: userFromGoogle.id,
         email: userFromGoogle.email,
@@ -170,14 +168,14 @@ export class AuthService {
       await this.redisClient.setex(hash, HASH_TTL, JSON.stringify({ id, email, role }));
 
       return res.redirect(
-        `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/callback?token=${hash}`,
+        `${this.configService.getOrThrow('FRONTEND_URL')}/api/auth/google/callback?token=${hash}`,
       );
     }
 
     await this.redisClient.setex(
       hash,
       HASH_TTL,
-      JSON.stringify({ id: user.id, email: user.email, role: user.role }),
+      JSON.stringify({ id: userData.id, email: userData.email, role: userData.role }),
     );
 
     return res.redirect(
@@ -197,18 +195,20 @@ export class AuthService {
 
     await this.redisClient.del(hash);
 
-    return this.auth(null, { id, email, role, customerPriceTier });
+    const auth = this.auth(null, { id, email, role, customerPriceTier });
+
+    return { data: auth };
   }
 
   async validate(payload: JwtPayload) {
-    const user = await this.userService.getByEmail(payload.email);
+    const { data: userData } = await this.userService.getByEmail(payload.email);
 
-    if (!user) {
+    if (!userData) {
       throw new NotFoundException('User not found');
     }
 
-    const { password, ...result } = user;
+    const { password, ...result } = userData;
 
-    return result;
+    return { data: result };
   }
 }

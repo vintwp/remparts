@@ -20,14 +20,16 @@ export class CartService {
     @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
   ) {}
 
-  async getByEmail(userEmail: string): Promise<{ items: TItemCart[]; totalSum: number }> {
-    const { customerPriceTier } = await this.userService.getByEmail(userEmail);
+  async getByEmail(userEmail: string): Promise<{ data: { items: TItemCart[]; totalSum: number } }> {
+    const {
+      data: { customerPriceTier },
+    } = await this.userService.getByEmail(userEmail);
 
     const redisKey = `cart-${userEmail}`;
 
     const cartFromRedis = await this.redisClient.get(redisKey);
 
-    if (cartFromRedis) return JSON.parse(cartFromRedis);
+    if (cartFromRedis) return { data: JSON.parse(cartFromRedis) };
 
     const cart = await this.prismaService.client.cart.findFirst({
       where: {
@@ -85,7 +87,7 @@ export class CartService {
 
     await this.redisClient.setex(redisKey, 12 * 3600, JSON.stringify(response));
 
-    return response;
+    return { data: response };
   }
 
   async add(userEmail: string, item: AddItemCartDto) {

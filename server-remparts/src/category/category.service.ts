@@ -23,14 +23,22 @@ export class CategoryService {
     return 'This action adds a new category';
   }
 
-  async getAll(): Promise<Category[]> {
+  async getAll(): Promise<{ data: Category[] }> {
+    const redisKey = `category-all`;
+
+    const categoriesFromRedis = await this.redisClient.get(redisKey);
+
+    if (categoriesFromRedis) return { data: JSON.parse(categoriesFromRedis) };
+
     const categories = await this.prismaService.category.findMany({
       include: {
         department: true,
       },
     });
 
-    return categories;
+    await this.redisClient.setex(redisKey, 12 * 3600, JSON.stringify(categories));
+
+    return { data: categories };
   }
 
   async getByUrl(
@@ -89,8 +97,13 @@ export class CategoryService {
     );
 
     return {
-      category,
-      itemsByCategory: { items: mappedItemsWithTierPrice, pagination: itemsByCategory.pagination },
+      data: {
+        category,
+        itemsByCategory: {
+          items: mappedItemsWithTierPrice,
+          pagination: itemsByCategory.pagination,
+        },
+      },
     };
   }
 
