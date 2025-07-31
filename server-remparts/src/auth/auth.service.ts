@@ -62,9 +62,9 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    const isUserExist = await this.userService.getByEmail(data.email);
+    const { data: isUserExistData } = await this.userService.getByEmail(data.email);
 
-    if (isUserExist) {
+    if (isUserExistData) {
       throw new ConflictException(messagesFromServer.auth.register.exist.ua);
     }
 
