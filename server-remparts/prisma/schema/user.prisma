@@ -26,6 +26,8 @@ model User {
   role                    Role              @default(USER)
   cart                    Cart?
   order                   Order[]
+  income                  Income[]
+  invoice                 Invoice[]
   isVerifiedEmail         Boolean           @default(false) @map("is_verified_email")
   isBanned                Boolean           @default(false) @map("is_banned")
   isPersonalDataFilled    Boolean           @default(false) @map("is_personal_data_filled")

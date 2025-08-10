@@ -1,0 +1,22 @@
+model Invoice {
+  id       String @id @unique
+  user     User @relation(fields: [userId], references: [id1c])
+  userId   String @unique @map("user_id")
+  item     InvoiceToItem[]
+  createdAt   DateTime
+
+  @@map("invoice")
+}
+
+
+model InvoiceToItem {
+  Int         @id @default(autoincrement())
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
+  invoiceId   Int @map("invoice_id")
+  item        Item @relation(fields: [itemId], references: [id1c])
+  itemId      Int
+  Float       @map("item_price")
+  itemQty     Int @default(1) @map("item_qty")
+
+  @@map("_invoice_to_item")
+}

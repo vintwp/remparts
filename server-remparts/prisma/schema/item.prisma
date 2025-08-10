@@ -1,6 +1,7 @@
 model Item {
   id                        Int @id @default(autoincrement()) @map("item_id")
-  dbId                      String @unique
+  id1c                      String @unique @map("item_id_1c")
+  idAfm                     String? @unique @map("item_id_afm")
   name                      String @map("item_name")
   priceWholesaleTop         Float @map("item_whilesale_top")
   priceWholesaleStandard    Float @map("item_whilesale_standard")     
@@ -20,6 +21,7 @@ model Item {
   images                    ItemImage[]
   cart                      CartToItem[]
   order                     OrderToItem[]
+  invoice                   InvoiceToItem[]
 
   @@map("item")
 }
@@ -37,7 +39,7 @@ model Compliance {
   id          Int @id @default(autoincrement()) @map("compliance_id")
   value       String @unique
   item        Item[]
-  category  Category[]
+  category    Category[]
 
   @@map("compliance")
 }

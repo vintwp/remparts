@@ -23,6 +23,7 @@ import { MailModule } from './mail/mail.module';
 import { CurrencyModule } from './currency/currency.module';
 import { CartModule } from './cart/cart.module';
 import { ShippingModule } from './shipping/shipping.module';
+import { SyncModule } from './sync/sync.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { ShippingModule } from './shipping/shipping.module';
     CurrencyModule,
     CartModule,
     ShippingModule,
+    SyncModule,
   ],
   controllers: [AppController],
   providers: [AppService, HashService],
