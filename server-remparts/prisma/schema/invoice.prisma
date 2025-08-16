@@ -10,13 +10,13 @@ model Invoice {
 
 
 model InvoiceToItem {
-  Int         @id @default(autoincrement())
   invoice     Invoice @relation(fields: [invoiceId], references: [id])
-  invoiceId   Int @map("invoice_id")
+  invoiceId   String @map("invoice_id")
   item        Item @relation(fields: [itemId], references: [id1c])
-  itemId      Int
-  Float       @map("item_price")
+  itemId      String
+  price       Float @map("item_price")
   itemQty     Int @default(1) @map("item_qty")
 
+  @@id([invoiceId])
   @@map("_invoice_to_item")
 }
