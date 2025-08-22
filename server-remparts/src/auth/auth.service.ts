@@ -55,7 +55,7 @@ export class AuthService {
     const { accessToken, refreshToken } = this.generateJwtToken(user);
 
     return {
-      user: { id: `${user.id}`, email: user.email, role: user.role },
+      user: { id: user.id, email: user.email, role: user.role },
       access_token: accessToken,
       refresh_token: refreshToken,
     };

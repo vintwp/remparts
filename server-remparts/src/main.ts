@@ -3,9 +3,10 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
   const PORT = configService.getOrThrow<number>('PORT');
 
@@ -18,6 +19,8 @@ async function bootstrap() {
     origin: configService.getOrThrow<string>('FRONTEND_URL'),
     credentials: true,
   });
+
+  app.useBodyParser('json', { limit: '10mb' });
 
   await app.listen(PORT, () => console.log(`SERVER STARTED ON PORT = ${PORT}`));
 }

@@ -9,6 +9,7 @@ model Category {
   brand           Brand[]
   quality         Quality[]
   complianceWith  Compliance[]
+  isVisible       Boolean @default(true) @map("is_visible")
 
   @@map("category")
 }

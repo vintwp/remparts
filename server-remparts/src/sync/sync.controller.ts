@@ -1,6 +1,7 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, ParseArrayPipe, Post } from '@nestjs/common';
 import { SyncService } from './sync.service';
-import { SyncCurrencyDto } from './dto/sync-currency';
+import { SyncCurrencyDto } from './dto/sync-currency.dto';
+import { SyncCatalogDto } from './dto/sync-catalog.dto';
 import { CurrencyService } from 'src/currency/currency.service';
 
 @Controller('sync')
@@ -10,10 +11,10 @@ export class SyncController {
     private readonly currencyService: CurrencyService,
   ) {}
 
-  @Post()
-  syncCatalog(@Body() dto: any) {
-    console.log(dto);
-    return '';
+  @Post('catalog')
+  @HttpCode(HttpStatus.OK)
+  syncCatalog(@Body(new ParseArrayPipe({ items: SyncCatalogDto })) dto: SyncCatalogDto[]) {
+    return this.syncService.syncCatalog(dto);
   }
 
   @Post('currency')

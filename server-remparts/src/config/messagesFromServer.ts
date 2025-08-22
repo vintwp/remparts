@@ -160,4 +160,29 @@ export const messagesFromServer = {
       ua: 'Внутрішня помилка сервера',
     },
   },
+
+  item: {
+    createManySuccessfully: {
+      en: 'Items were successfully created',
+      ua: 'Товари були успішно створені',
+    },
+
+    createManyError: {
+      en: 'Error creating items',
+      ua: 'Помилка при створенні товарів',
+    },
+  },
+
+  sync: {
+    updateCurrencySuccess: {
+      en: 'Currency exchange rate was successfully updated',
+      ua: 'Курс валют успішно оновлений',
+      ru: 'Курс валют успешно обновлен',
+    },
+    updateCurrencyError: {
+      en: 'Error updating currency exchange rate',
+      ua: 'Помилка при оновленні курсу валют',
+      ru: 'Ошибка при обновлении курса валют',
+    },
+  },
 };

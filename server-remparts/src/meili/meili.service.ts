@@ -1,7 +1,7 @@
 import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { Category, Item } from '@prisma/client';
 import Redis from 'ioredis';
-import { Index, MeiliSearch, SearchResponse, Settings } from 'meilisearch';
+import { Index, MeiliSearch, MeiliSearchApiError, SearchResponse, Settings } from 'meilisearch';
 import { ItemWithImageObjects } from 'src/types';
 
 @Injectable()
@@ -14,15 +14,20 @@ export class MeiliService implements OnApplicationBootstrap {
     this.MEILI_GLOBAL_INDEX = 'global_search';
   }
 
-  async createOrGetIndex(idx: string) {
+  private async createOrGetIndex(idx: string) {
     try {
       this.index = await this.meiliClient.getIndex(idx);
     } catch (error) {
-      if (error.code === 'index_not_found') {
-        await this.meiliClient.createIndex(idx, {
-          primaryKey: 'id',
-        });
-        this.index = await this.meiliClient.getIndex(idx);
+      if (error instanceof MeiliSearchApiError) {
+        if (error.cause.code === 'index_not_found') {
+          const createdIndex = await this.meiliClient.createIndex(idx, {
+            primaryKey: 'id',
+          });
+
+          await this.meiliClient.tasks.waitForTask(createdIndex.taskUid);
+
+          this.index = await this.meiliClient.getIndex(idx);
+        }
       } else {
         throw error;
       }

@@ -3,6 +3,7 @@ import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from 'src/prisma.extension';
 import Redis from 'ioredis';
+import { messagesFromServer } from 'src/config/messagesFromServer';
 
 @Injectable()
 export class CurrencyService {
@@ -42,6 +43,9 @@ export class CurrencyService {
       },
     });
 
-    return { data: updatedCurrency.value };
+    return {
+      data: updatedCurrency.value,
+      message: messagesFromServer.sync.updateCurrencySuccess.ru,
+    };
   }
 }

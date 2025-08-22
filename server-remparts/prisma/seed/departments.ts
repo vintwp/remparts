@@ -3,44 +3,58 @@ import { prisma } from '../prisma';
 
 const departments = [
   {
-    name: 'Автомобільні аксесуари',
+    name: 'No department',
     id: 1,
+    order: 99,
+    isVisible: false,
+  },
+  {
+    name: 'Автомобільні аксесуари',
+    id: 2,
     order: 7,
+    isVisible: true,
   },
   {
     name: 'Аксесуари до мобільних телефонів і смартфонів',
-    id: 2,
+    id: 3,
     order: 2,
+    isVisible: true,
   },
   {
     name: 'Запчастини для мобільних телефонів і смартфонів',
-    id: 3,
+    id: 4,
     order: 1,
+    isVisible: true,
   },
   {
     name: "Комп'ютерні аксесуари",
-    id: 4,
+    id: 5,
     order: 6,
+    isVisible: true,
   },
   {
     name: 'Смартфони та електроніка',
-    id: 5,
+    id: 6,
     order: 8,
+    isVisible: true,
   },
   {
     name: 'Обладнання для ремонту',
-    id: 6,
+    id: 7,
     order: 3,
+    isVisible: true,
   },
   {
     name: 'Витратні матеріали для ремонту та обслуговування',
-    id: 7,
+    id: 8,
     order: 4,
+    isVisible: true,
   },
   {
     name: 'Запчастини і аксесуари для ноутбуків',
-    id: 8,
+    id: 9,
     order: 5,
+    isVisible: true,
   },
 ];
 
@@ -51,6 +65,7 @@ export async function createDepartments() {
         name: department.name,
         url: createUrl(department.name),
         order: department.order,
+        isVisible: department.isVisible,
       },
     });
   }

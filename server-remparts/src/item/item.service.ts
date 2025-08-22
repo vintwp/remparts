@@ -4,35 +4,30 @@ import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '../prisma.extension';
-import { CustomerPriceTier, Item } from '@prisma/client';
+import { CustomerPriceTier, Item, Prisma } from '@prisma/client';
 import { Sort } from './types';
 import { ItemWithImageLinks, ItemWithImageObjects } from 'src/types';
 import { paginate } from 'src/lib/utils';
 import { priceTierToProductParam, TItemReturn } from 'src/types';
+import { messagesFromServer } from 'src/config/messagesFromServer';
 
 @Injectable()
 export class ItemService {
+  private readonly redisKey_AllItems: string;
   constructor(
     @Inject('PrismaService')
     private readonly prisma: CustomPrismaService<ExtendedPrismaClient>,
     @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
-  ) {}
-
-  async create(createItemDto: CreateItemDto) {
-    return 'This action adds a new item';
+  ) {
+    this.redisKey_AllItems = 'items_all';
   }
 
-  async getAll(): Promise<
-    Array<ItemWithImageObjects & { category: { id: number; name: string } }>
-  > {
-    const cacheKeyRedis = 'items_all';
+  // #region private and public helper functions
+  private refineFieldsMatch(fieldId: string | number): number {
+    return +fieldId > 0 ? +fieldId : 1;
+  }
 
-    const allItemsFromRedis = await this.redisClient.get(cacheKeyRedis);
-
-    if (allItemsFromRedis) {
-      return JSON.parse(allItemsFromRedis);
-    }
-
+  private async getAllItemsFromDB() {
     const items = await this.prisma.client.item.findMany({
       include: {
         category: {
@@ -51,9 +46,7 @@ export class ItemService {
 
     const itemsWithImageLinks = this.flattenProductImageLinks(items);
 
-    await this.redisClient.setex(cacheKeyRedis, 21600, JSON.stringify(itemsWithImageLinks));
-
-    return items;
+    return itemsWithImageLinks;
   }
 
   private filterItems(
@@ -243,6 +236,161 @@ export class ItemService {
     });
 
     return mappedItems;
+  }
+
+  async manageItemsRedisCache(action: 'DELETE' | 'GET' | 'RESET' = 'GET') {
+    const actionDelete = async () => {
+      await this.redisClient.del(this.redisKey_AllItems);
+
+      return [] as ItemWithImageLinks[];
+    };
+
+    const actionReset = async () => {
+      await actionDelete();
+
+      const itemsFromDb = await this.getAllItemsFromDB();
+
+      await this.redisClient.setex(this.redisKey_AllItems, 21600, JSON.stringify(itemsFromDb));
+
+      return itemsFromDb;
+    };
+
+    const actionGet = async () => {
+      const allItemsFromRedis = await this.redisClient.get(this.redisKey_AllItems);
+
+      if (allItemsFromRedis) {
+        return JSON.parse(allItemsFromRedis) as ItemWithImageLinks[];
+      }
+
+      const itemsFromDb = await actionReset();
+
+      return itemsFromDb;
+    };
+
+    switch (action) {
+      case 'DELETE':
+        return actionDelete();
+
+      case 'RESET':
+        return actionReset();
+
+      default:
+        return actionGet();
+    }
+  }
+
+  // #endregion
+
+  async create(createItemDto: CreateItemDto[]) {}
+
+  async createMany(items: Array<Omit<Item, 'id'>>) {
+    // We use condition
+    // for check departmentId, categoryId, brandId, complianceId, qualityId - to avoid error creating items
+    // 1C empty field returns 0, but id starts from 1. So, if we got 0, to avoid error - we set 1
+
+    try {
+      const res = await this.prisma.client.$transaction(async prisma => {
+        const createdItems = await prisma.item.createManyAndReturn({
+          data: items.map(item => {
+            const departmentId = this.refineFieldsMatch(item.departmentId);
+            const categoryId = this.refineFieldsMatch(item.categoryId);
+            const brandId = this.refineFieldsMatch(item.brandId);
+            const complianceId = this.refineFieldsMatch(item.complianceId);
+            const qualityId = this.refineFieldsMatch(item.qualityId);
+
+            return {
+              id1c: item.id1c,
+              idAfm: !!item.idAfm ? item.idAfm : undefined,
+              name: item.name,
+              priceWholesaleTop: item.priceWholesaleTop,
+              priceWholesaleStandard: item.priceWholesaleStandard,
+              priceWholesaleBasic: item.priceWholesaleBasic,
+              price: item.price,
+              stock: item.stock,
+              departmentId: departmentId,
+              categoryId: categoryId,
+              brandId: brandId,
+              complianceId: complianceId,
+              qualityId: qualityId,
+            };
+          }),
+        });
+
+        const createdItemsIds = createdItems.map(itm => itm.id);
+
+        // Add no-image to all created items
+        await prisma.itemImage.createMany({
+          data: createdItemsIds.map(id => ({
+            itemId: id,
+            link: 'no-image.png',
+          })),
+        });
+
+        return { qty: createdItems.length };
+      });
+
+      await this.manageItemsRedisCache('RESET');
+
+      return {
+        message: `${messagesFromServer.item.createManySuccessfully.ua}. Створено ${res.qty} товарів`,
+        data: null,
+      };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        return {
+          message: `${messagesFromServer.item.createManyError.ua}. ${error.message}`,
+          data: null,
+        };
+      }
+
+      return {
+        message: `${messagesFromServer.item.createManyError.ua}. ${String(error)}`,
+        data: null,
+      };
+    }
+  }
+
+  async getAll(): Promise<
+    // Array<ItemWithImageObjects & { category: { id: number; name: string } } >
+    Array<ItemWithImageLinks>
+  > {
+    /* const allItemsFromRedis = await this.redisClient.get(this.redisKey_AllItems);
+
+    if (allItemsFromRedis) {
+      return JSON.parse(allItemsFromRedis);
+    }
+
+   const items = await this.prisma.client.item.findMany({
+      include: {
+        // category: {
+        //   select: {
+        //     id: true,
+        //     name: true,
+        //   },
+        // },
+        images: {
+          select: {
+            link: true,
+          },
+        },
+      },
+   });
+
+    const itemsWithImageLinks = this.flattenProductImageLinks(items);
+
+    await this.redisClient.setex(
+      this.redisKey_AllItems,
+      21600,
+      JSON.stringify(itemsWithImageLinks),
+    );
+
+    return items; */
+
+    return await this.manageItemsRedisCache('GET');
+  }
+
+  async deleteCatalogFromRedisStorage() {
+    await this.redisClient.del(this.redisKey_AllItems);
   }
 
   async getByParams(

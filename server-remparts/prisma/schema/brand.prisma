@@ -3,6 +3,7 @@ model Brand {
   name        String @unique
   item        Item[]
   category    Category[]
+  isVisible   Boolean @default(true) @map("is_visible")
 
   @@map("brand")
 }
