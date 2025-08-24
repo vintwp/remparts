@@ -3,19 +3,18 @@ import { Request } from 'express';
 import { CurrencyService } from './currency.service';
 import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { IsAuthorized } from 'src/auth/decorators/is-authorized.decorator';
+import { messagesFromServer } from 'src/config/messagesFromServer';
 
 @Controller('exchange-rate')
 export class CurrencyController {
   constructor(private readonly currencyService: CurrencyService) {}
 
   @Get()
-  get() {
-    return this.currencyService.get();
-  }
+  async get() {
+    const res = await this.currencyService.get();
 
-  @IsAuthorized('ADMIN')
-  @Post()
-  update(@Body() updateCurrencyDto: UpdateCurrencyDto) {
-    return this.currencyService.update(updateCurrencyDto);
+    return {
+      data: res,
+    };
   }
 }

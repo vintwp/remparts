@@ -287,69 +287,20 @@ export class ItemService {
 
     // transaction loop to create items
 
-    for (const chunkedItems of itemsToCreateChunks) {
-      await this.prisma.client.$transaction(async prisma => {
-        const createdItemsReponse = await prisma.item.createManyAndReturn({
-          data: chunkedItems.map(item => {
-            const departmentId = this.refineFieldsMatch(item.departmentId);
-            const categoryId = this.refineFieldsMatch(item.categoryId);
-            const brandId = this.refineFieldsMatch(item.brandId);
-            const complianceId = this.refineFieldsMatch(item.complianceId);
-            const qualityId = this.refineFieldsMatch(item.qualityId);
+    try {
+      for (const chunkedItems of itemsToCreateChunks) {
+        await this.prisma.client.$transaction(async prisma => {
+          const createdItemsReponse = await prisma.item.createManyAndReturn({
+            data: chunkedItems.map(item => {
+              const departmentId = this.refineFieldsMatch(item.departmentId);
+              const categoryId = this.refineFieldsMatch(item.categoryId);
+              const brandId = this.refineFieldsMatch(item.brandId);
+              const complianceId = this.refineFieldsMatch(item.complianceId);
+              const qualityId = this.refineFieldsMatch(item.qualityId);
 
-            return {
-              id1c: item.id1c,
-              idAfm: !!item.idAfm ? item.idAfm : undefined,
-              name: item.name,
-              priceWholesaleTop: item.priceWholesaleTop,
-              priceWholesaleStandard: item.priceWholesaleStandard,
-              priceWholesaleBasic: item.priceWholesaleBasic,
-              price: item.price,
-              stock: item.stock,
-              departmentId: departmentId,
-              categoryId: categoryId,
-              brandId: brandId,
-              complianceId: complianceId,
-              qualityId: qualityId,
-            };
-          }),
-        });
-        const createdItemsIds = createdItemsReponse.map(itm => itm.id);
-
-        // Add no-image to all created items
-        await prisma.itemImage.createMany({
-          data: createdItemsIds.map(id => ({
-            itemId: id,
-            link: 'no-image.png',
-          })),
-        });
-
-        createdItems.push(...createdItemsReponse);
-      });
-    }
-
-    return createdItems;
-  }
-
-  private async updateMany(itemsFrom1c: Array<Omit<Item, 'id' | 'isHidden'>>) {
-    const updatedItems: Item[] = [];
-    const itemsToUpdateChunks = chunkArray(itemsFrom1c, 500);
-    // transaction loop to update items
-
-    for (const chunkedItems of itemsToUpdateChunks) {
-      await this.prisma.client.$transaction(async prisma => {
-        const updItems = await Promise.all(
-          chunkedItems.map(item => {
-            const departmentId = this.refineFieldsMatch(item.departmentId);
-            const categoryId = this.refineFieldsMatch(item.categoryId);
-            const brandId = this.refineFieldsMatch(item.brandId);
-            const complianceId = this.refineFieldsMatch(item.complianceId);
-            const qualityId = this.refineFieldsMatch(item.qualityId);
-
-            return prisma.item.update({
-              where: { id1c: item.id1c },
-              data: {
-                idAfm: item.idAfm,
+              return {
+                id1c: item.id1c,
+                idAfm: !!item.idAfm ? item.idAfm : undefined,
                 name: item.name,
                 priceWholesaleTop: item.priceWholesaleTop,
                 priceWholesaleStandard: item.priceWholesaleStandard,
@@ -361,45 +312,105 @@ export class ItemService {
                 brandId: brandId,
                 complianceId: complianceId,
                 qualityId: qualityId,
-                isHidden: false,
-              },
-            });
-          }),
-        );
+              };
+            }),
+          });
+          const createdItemsIds = createdItemsReponse.map(itm => itm.id);
 
-        updatedItems.push(...updItems);
-      });
+          // Add no-image to all created items
+          await prisma.itemImage.createMany({
+            data: createdItemsIds.map(id => ({
+              itemId: id,
+              link: 'no-image.png',
+            })),
+          });
+
+          createdItems.push(...createdItemsReponse);
+        });
+      }
+    } catch (error) {
+      throw error;
     }
 
-    return updatedItems;
+    return createdItems;
+  }
+
+  private async updateMany(itemsFrom1c: Array<Omit<Item, 'id' | 'isHidden'>>) {
+    const updatedItems: Item[] = [];
+    const itemsToUpdateChunks = chunkArray(itemsFrom1c, 500);
+    // transaction loop to update items
+
+    try {
+      for (const chunkedItems of itemsToUpdateChunks) {
+        await this.prisma.client.$transaction(async prisma => {
+          const updItems = await Promise.all(
+            chunkedItems.map(item => {
+              const departmentId = this.refineFieldsMatch(item.departmentId);
+              const categoryId = this.refineFieldsMatch(item.categoryId);
+              const brandId = this.refineFieldsMatch(item.brandId);
+              const complianceId = this.refineFieldsMatch(item.complianceId);
+              const qualityId = this.refineFieldsMatch(item.qualityId);
+
+              return prisma.item.update({
+                where: { id1c: item.id1c },
+                data: {
+                  idAfm: item.idAfm,
+                  name: item.name,
+                  priceWholesaleTop: item.priceWholesaleTop,
+                  priceWholesaleStandard: item.priceWholesaleStandard,
+                  priceWholesaleBasic: item.priceWholesaleBasic,
+                  price: item.price,
+                  stock: item.stock,
+                  departmentId: departmentId,
+                  categoryId: categoryId,
+                  brandId: brandId,
+                  complianceId: complianceId,
+                  qualityId: qualityId,
+                  isHidden: false,
+                },
+              });
+            }),
+          );
+
+          updatedItems.push(...updItems);
+        });
+      }
+
+      return updatedItems;
+    } catch (error) {
+      throw error;
+    }
   }
 
   private async hideMany(itemsFrom1cIds: string[]) {
     const hiddenItems: Item[] = [];
     const itemsToHideChunks = chunkArray(itemsFrom1cIds, 500);
 
-    for (const chunkedItems of itemsToHideChunks) {
-      await this.prisma.client.$transaction(async prisma => {
-        const hidItems = await Promise.all(
-          chunkedItems.map(id1c => {
-            return prisma.item.update({
-              where: { id1c: id1c },
-              data: {
-                isHidden: true,
-                categoryId: 1,
-                departmentId: 1,
-                brandId: 1,
-                qualityId: 1,
-              },
-            });
-          }),
-        );
+    try {
+      for (const chunkedItems of itemsToHideChunks) {
+        await this.prisma.client.$transaction(async prisma => {
+          const hidItems = await Promise.all(
+            chunkedItems.map(id1c => {
+              return prisma.item.update({
+                where: { id1c: id1c },
+                data: {
+                  isHidden: true,
+                  categoryId: 1,
+                  departmentId: 1,
+                  brandId: 1,
+                  qualityId: 1,
+                },
+              });
+            }),
+          );
 
-        hiddenItems.push(...hidItems);
-      });
+          hiddenItems.push(...hidItems);
+        });
+      }
+      return hiddenItems;
+    } catch (error) {
+      throw error;
     }
-
-    return hiddenItems;
   }
 
   async createAndUpdateMany(itemsFrom1c: Array<Omit<Item, 'id'>>) {
@@ -437,27 +448,17 @@ export class ItemService {
           return !isEqual;
         });
 
-      // console.log(itemsToUpdate);
-
       const itemsToHide = itemIdFromPostgreSQL.filter(id => !itemId1c.includes(id));
 
       const createdItems = await this.createMany(itemsToCreate);
       const updatedItems = await this.updateMany(itemsToUpdate);
       const hiddenItems = await this.hideMany(itemsToHide);
 
-      console.log(itemsToCreate.length, 'itemsToCreate');
-      console.log(itemsToUpdate.length, 'itemsToUpdate');
-      console.log(itemsToHide.length, 'itemsToHide');
-
       await this.manageItemsRedisCache('RESET');
 
       return { createdItems, updatedItems, hiddenItems };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        throw new Error(`${messagesFromServer.item.createManyError.ua}. ${error.message}`);
-      }
-
-      throw new Error(`${messagesFromServer.item.createManyError.ua}. ${String(error)}`);
+      throw error;
     }
   }
 

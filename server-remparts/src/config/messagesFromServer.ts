@@ -184,5 +184,15 @@ export const messagesFromServer = {
       ua: 'Помилка при оновленні курсу валют',
       ru: 'Ошибка при обновлении курса валют',
     },
+    updateItemsSuccess: {
+      en: 'Items were successfully created and updated',
+      ua: 'Товари успішно створенні і ононовлені',
+      ru: 'Товары успешно созданы и обновлены',
+    },
+    updateItemsError: {
+      en: 'Error creating/updating items',
+      ua: 'Помилка при створені/оновленні товарів',
+      ru: 'Ошибка при создании/обновлении товаров',
+    },
   },
 };
