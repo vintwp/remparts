@@ -2,6 +2,7 @@ model Item {
   id                        Int @id @default(autoincrement()) @map("item_id")
   id1c                      String @unique @map("item_id_1c")
   idAfm                     String? @unique @map("item_id_afm")
+  isHidden                  Boolean? @default(false) @map("item_is_hidden")
   name                      String @map("item_name")
   priceWholesaleTop         Float @map("item_whilesale_top")
   priceWholesaleStandard    Float @map("item_whilesale_standard")     
@@ -22,7 +23,7 @@ model Item {
   cart                      CartToItem[]
   order                     OrderToItem[]
   invoice                   InvoiceToItem[]
-
+  
   @@map("item")
 }
 

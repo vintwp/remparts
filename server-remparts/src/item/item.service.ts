@@ -7,7 +7,7 @@ import { ExtendedPrismaClient } from '../prisma.extension';
 import { CustomerPriceTier, Item, Prisma } from '@prisma/client';
 import { Sort } from './types';
 import { ItemWithImageLinks, ItemWithImageObjects } from 'src/types';
-import { paginate } from 'src/lib/utils';
+import { chunkArray, compareObjectsByKeys, paginate } from 'src/lib/utils';
 import { priceTierToProductParam, TItemReturn } from 'src/types';
 import { messagesFromServer } from 'src/config/messagesFromServer';
 
@@ -22,7 +22,7 @@ export class ItemService {
     this.redisKey_AllItems = 'items_all';
   }
 
-  // #region private and public helper functions
+  // #region helper functions
   private refineFieldsMatch(fieldId: string | number): number {
     return +fieldId > 0 ? +fieldId : 1;
   }
@@ -281,17 +281,16 @@ export class ItemService {
 
   // #endregion
 
-  async create(createItemDto: CreateItemDto[]) {}
+  private async createMany(itemsFrom1c: Array<Omit<Item, 'id' | 'isHidden'>>) {
+    const createdItems: Item[] = [];
+    const itemsToCreateChunks = chunkArray(itemsFrom1c, 500);
 
-  async createMany(items: Array<Omit<Item, 'id'>>) {
-    // We use condition
-    // for check departmentId, categoryId, brandId, complianceId, qualityId - to avoid error creating items
-    // 1C empty field returns 0, but id starts from 1. So, if we got 0, to avoid error - we set 1
+    // transaction loop to create items
 
-    try {
-      const res = await this.prisma.client.$transaction(async prisma => {
-        const createdItems = await prisma.item.createManyAndReturn({
-          data: items.map(item => {
+    for (const chunkedItems of itemsToCreateChunks) {
+      await this.prisma.client.$transaction(async prisma => {
+        const createdItemsReponse = await prisma.item.createManyAndReturn({
+          data: chunkedItems.map(item => {
             const departmentId = this.refineFieldsMatch(item.departmentId);
             const categoryId = this.refineFieldsMatch(item.categoryId);
             const brandId = this.refineFieldsMatch(item.brandId);
@@ -315,8 +314,7 @@ export class ItemService {
             };
           }),
         });
-
-        const createdItemsIds = createdItems.map(itm => itm.id);
+        const createdItemsIds = createdItemsReponse.map(itm => itm.id);
 
         // Add no-image to all created items
         await prisma.itemImage.createMany({
@@ -326,66 +324,144 @@ export class ItemService {
           })),
         });
 
-        return { qty: createdItems.length };
+        createdItems.push(...createdItemsReponse);
       });
+    }
+
+    return createdItems;
+  }
+
+  private async updateMany(itemsFrom1c: Array<Omit<Item, 'id' | 'isHidden'>>) {
+    const updatedItems: Item[] = [];
+    const itemsToUpdateChunks = chunkArray(itemsFrom1c, 500);
+    // transaction loop to update items
+
+    for (const chunkedItems of itemsToUpdateChunks) {
+      await this.prisma.client.$transaction(async prisma => {
+        const updItems = await Promise.all(
+          chunkedItems.map(item => {
+            const departmentId = this.refineFieldsMatch(item.departmentId);
+            const categoryId = this.refineFieldsMatch(item.categoryId);
+            const brandId = this.refineFieldsMatch(item.brandId);
+            const complianceId = this.refineFieldsMatch(item.complianceId);
+            const qualityId = this.refineFieldsMatch(item.qualityId);
+
+            return prisma.item.update({
+              where: { id1c: item.id1c },
+              data: {
+                idAfm: item.idAfm,
+                name: item.name,
+                priceWholesaleTop: item.priceWholesaleTop,
+                priceWholesaleStandard: item.priceWholesaleStandard,
+                priceWholesaleBasic: item.priceWholesaleBasic,
+                price: item.price,
+                stock: item.stock,
+                departmentId: departmentId,
+                categoryId: categoryId,
+                brandId: brandId,
+                complianceId: complianceId,
+                qualityId: qualityId,
+                isHidden: false,
+              },
+            });
+          }),
+        );
+
+        updatedItems.push(...updItems);
+      });
+    }
+
+    return updatedItems;
+  }
+
+  private async hideMany(itemsFrom1cIds: string[]) {
+    const hiddenItems: Item[] = [];
+    const itemsToHideChunks = chunkArray(itemsFrom1cIds, 500);
+
+    for (const chunkedItems of itemsToHideChunks) {
+      await this.prisma.client.$transaction(async prisma => {
+        const hidItems = await Promise.all(
+          chunkedItems.map(id1c => {
+            return prisma.item.update({
+              where: { id1c: id1c },
+              data: {
+                isHidden: true,
+                categoryId: 1,
+                departmentId: 1,
+                brandId: 1,
+                qualityId: 1,
+              },
+            });
+          }),
+        );
+
+        hiddenItems.push(...hidItems);
+      });
+    }
+
+    return hiddenItems;
+  }
+
+  async createAndUpdateMany(itemsFrom1c: Array<Omit<Item, 'id'>>) {
+    // We use condition
+    // for check departmentId, categoryId, brandId, complianceId, qualityId - to avoid error creating items
+    // 1C empty field returns 0, but id starts from 1. So, if we got 0, to avoid error - we set 1
+
+    try {
+      // Define items to create
+      const itemsFromPostgreSQL = await this.getAll();
+      const itemIdFromPostgreSQL = itemsFromPostgreSQL.map(item => item.id1c);
+      const itemId1c = itemsFrom1c.map(item => item.id1c);
+
+      const itemsToCreate = itemsFrom1c.filter(item => !itemIdFromPostgreSQL.includes(item.id1c));
+      const itemsToUpdate = itemsFrom1c
+        .filter(item => itemIdFromPostgreSQL.includes(item.id1c))
+        .filter(item => {
+          const existItemInPostgreSQL = itemsFromPostgreSQL.find(itm => itm.id1c === item.id1c);
+          const isEqual = compareObjectsByKeys(item, existItemInPostgreSQL, [
+            'brandId',
+            'categoryId',
+            'complianceId',
+            'qualityId',
+            'departmentId',
+            'idAfm',
+            'name',
+            'price',
+            'priceWholesaleBasic',
+            'priceWholesaleStandard',
+            'priceWholesaleTop',
+            'stock',
+            'isHidden',
+          ]);
+
+          return !isEqual;
+        });
+
+      // console.log(itemsToUpdate);
+
+      const itemsToHide = itemIdFromPostgreSQL.filter(id => !itemId1c.includes(id));
+
+      const createdItems = await this.createMany(itemsToCreate);
+      const updatedItems = await this.updateMany(itemsToUpdate);
+      const hiddenItems = await this.hideMany(itemsToHide);
+
+      console.log(itemsToCreate.length, 'itemsToCreate');
+      console.log(itemsToUpdate.length, 'itemsToUpdate');
+      console.log(itemsToHide.length, 'itemsToHide');
 
       await this.manageItemsRedisCache('RESET');
 
-      return {
-        message: `${messagesFromServer.item.createManySuccessfully.ua}. Створено ${res.qty} товарів`,
-        data: null,
-      };
+      return { createdItems, updatedItems, hiddenItems };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        return {
-          message: `${messagesFromServer.item.createManyError.ua}. ${error.message}`,
-          data: null,
-        };
+        throw new Error(`${messagesFromServer.item.createManyError.ua}. ${error.message}`);
       }
 
-      return {
-        message: `${messagesFromServer.item.createManyError.ua}. ${String(error)}`,
-        data: null,
-      };
+      throw new Error(`${messagesFromServer.item.createManyError.ua}. ${String(error)}`);
     }
   }
 
-  async getAll(): Promise<
-    // Array<ItemWithImageObjects & { category: { id: number; name: string } } >
-    Array<ItemWithImageLinks>
-  > {
-    /* const allItemsFromRedis = await this.redisClient.get(this.redisKey_AllItems);
-
-    if (allItemsFromRedis) {
-      return JSON.parse(allItemsFromRedis);
-    }
-
-   const items = await this.prisma.client.item.findMany({
-      include: {
-        // category: {
-        //   select: {
-        //     id: true,
-        //     name: true,
-        //   },
-        // },
-        images: {
-          select: {
-            link: true,
-          },
-        },
-      },
-   });
-
-    const itemsWithImageLinks = this.flattenProductImageLinks(items);
-
-    await this.redisClient.setex(
-      this.redisKey_AllItems,
-      21600,
-      JSON.stringify(itemsWithImageLinks),
-    );
-
-    return items; */
-
+  async getAll(): Promise<Array<ItemWithImageLinks>> {
     return await this.manageItemsRedisCache('GET');
   }
 

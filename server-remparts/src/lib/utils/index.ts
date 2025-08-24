@@ -34,8 +34,41 @@ function removeObjectProperty<T extends Record<string, unknown>, K extends keyof
   return res;
 }
 
-export const isDev = (configService: ConfigService) => {
+const isDev = (configService: ConfigService) => {
   return configService.getOrThrow('NODE_ENV') === 'development';
 };
 
-export { createUrl, paginate, cursorPaginate, removeObjectProperty };
+function compareObjectsByKeys<T, P extends keyof T>(
+  obj1: T,
+  obj2: Pick<T, P>,
+  keysToCompare: P[],
+): boolean {
+  let isSame = true;
+
+  for (const key of keysToCompare) {
+    if (obj1[key] !== obj2[key]) {
+      isSame = false;
+      break;
+    }
+  }
+
+  return isSame;
+}
+
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+export {
+  createUrl,
+  paginate,
+  cursorPaginate,
+  removeObjectProperty,
+  compareObjectsByKeys,
+  isDev,
+  chunkArray,
+};
