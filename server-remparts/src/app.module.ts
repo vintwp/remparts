@@ -24,6 +24,8 @@ import { CurrencyModule } from './currency/currency.module';
 import { CartModule } from './cart/cart.module';
 import { ShippingModule } from './shipping/shipping.module';
 import { SyncModule } from './sync/sync.module';
+import { PaymentModule } from './payment/payment.module';
+import { InvoiceModule } from './invoice/invoice.module';
 
 @Module({
   imports: [
@@ -55,6 +57,8 @@ import { SyncModule } from './sync/sync.module';
     CartModule,
     ShippingModule,
     SyncModule,
+    PaymentModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService, HashService],

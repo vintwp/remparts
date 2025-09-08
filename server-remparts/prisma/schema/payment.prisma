@@ -1,0 +1,16 @@
+enum Currency {
+  USD
+  UAH
+}
+
+model Payment {
+  id        String @id @unique @map("payment_id")
+  id1c      String @map("payment_id_1c")
+  user      User @relation(fields: [userId], references: [id])
+  userId    Int @map("user_id")
+  value     Int
+  currency  Currency
+  createdAt DateTime
+
+  @@map("payment")
+}

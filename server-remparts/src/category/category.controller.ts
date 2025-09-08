@@ -19,7 +19,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ParseIntArray } from 'src/pipes/parse-int-array';
 import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt-auth.guard';
-import { TJwtUser } from 'src/types';
+import { TJwtUser } from 'src/shared/types/';
 
 @Controller('category')
 export class CategoryController {

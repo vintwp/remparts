@@ -1,3 +1,3 @@
-import { TJwtUser } from 'src/types';
+import { TJwtUser } from 'src/shared/types/';
 
 export type JwtPayload = TJwtUser;

@@ -1,22 +1,20 @@
 import Redis from 'ioredis';
-import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
-import { CreateItemDto } from './dto/create-item.dto';
+import { Inject, Injectable } from '@nestjs/common';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from '../prisma.extension';
-import { CustomerPriceTier, Item, Prisma } from '@prisma/client';
+import { CustomerPriceTier, Item } from '@prisma/client';
 import { Sort } from './types';
-import { ItemWithImageLinks, ItemWithImageObjects } from 'src/types';
+import { ItemWithImageLinks, ItemWithImageObjects } from 'src/shared/types/';
 import { chunkArray, compareObjectsByKeys, paginate } from 'src/lib/utils';
-import { priceTierToProductParam, TItemReturn } from 'src/types';
-import { messagesFromServer } from 'src/config/messagesFromServer';
+import { priceTierToProductParam, TItemReturn } from 'src/shared/types/';
 
 @Injectable()
 export class ItemService {
   private readonly redisKey_AllItems: string;
   constructor(
     @Inject('PrismaService')
-    private readonly prisma: CustomPrismaService<ExtendedPrismaClient>,
+    private readonly prismaService: CustomPrismaService<ExtendedPrismaClient>,
     @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
   ) {
     this.redisKey_AllItems = 'items_all';
@@ -28,7 +26,7 @@ export class ItemService {
   }
 
   private async getAllItemsFromDB() {
-    const items = await this.prisma.client.item.findMany({
+    const items = await this.prismaService.client.item.findMany({
       include: {
         category: {
           select: {
@@ -281,7 +279,7 @@ export class ItemService {
 
   // #endregion
 
-  private async createMany(itemsFrom1c: Array<Omit<Item, 'id' | 'isHidden'>>) {
+  private async createMany(itemsFrom1c: Array<Omit<Item, 'id'>>) {
     const createdItems: Item[] = [];
     const itemsToCreateChunks = chunkArray(itemsFrom1c, 500);
 
@@ -289,7 +287,7 @@ export class ItemService {
 
     try {
       for (const chunkedItems of itemsToCreateChunks) {
-        await this.prisma.client.$transaction(async prisma => {
+        await this.prismaService.client.$transaction(async prisma => {
           const createdItemsReponse = await prisma.item.createManyAndReturn({
             data: chunkedItems.map(item => {
               const departmentId = this.refineFieldsMatch(item.departmentId);
@@ -300,6 +298,7 @@ export class ItemService {
 
               return {
                 id1c: item.id1c,
+                isHidden: item.isHidden || false,
                 idAfm: !!item.idAfm ? item.idAfm : undefined,
                 name: item.name,
                 priceWholesaleTop: item.priceWholesaleTop,
@@ -328,21 +327,27 @@ export class ItemService {
           createdItems.push(...createdItemsReponse);
         });
       }
+
+      return createdItems;
     } catch (error) {
       throw error;
     }
-
-    return createdItems;
   }
 
-  private async updateMany(itemsFrom1c: Array<Omit<Item, 'id' | 'isHidden'>>) {
+  private async updateMany(itemsFrom1c: Array<Omit<Item, 'id'>>) {
     const updatedItems: Item[] = [];
+
+    if (!itemsFrom1c.length) {
+      return updatedItems; // nothing to update
+    }
+
     const itemsToUpdateChunks = chunkArray(itemsFrom1c, 500);
+
     // transaction loop to update items
 
     try {
       for (const chunkedItems of itemsToUpdateChunks) {
-        await this.prisma.client.$transaction(async prisma => {
+        await this.prismaService.client.$transaction(async prisma => {
           const updItems = await Promise.all(
             chunkedItems.map(item => {
               const departmentId = this.refineFieldsMatch(item.departmentId);
@@ -354,7 +359,7 @@ export class ItemService {
               return prisma.item.update({
                 where: { id1c: item.id1c },
                 data: {
-                  idAfm: item.idAfm,
+                  idAfm: !!item.idAfm ? item.idAfm : undefined,
                   name: item.name,
                   priceWholesaleTop: item.priceWholesaleTop,
                   priceWholesaleStandard: item.priceWholesaleStandard,
@@ -366,7 +371,7 @@ export class ItemService {
                   brandId: brandId,
                   complianceId: complianceId,
                   qualityId: qualityId,
-                  isHidden: false,
+                  isHidden: item.isHidden || false,
                 },
               });
             }),
@@ -384,11 +389,16 @@ export class ItemService {
 
   private async hideMany(itemsFrom1cIds: string[]) {
     const hiddenItems: Item[] = [];
+
+    if (!itemsFrom1cIds.length) {
+      return hiddenItems; // nothing to hide
+    }
+
     const itemsToHideChunks = chunkArray(itemsFrom1cIds, 500);
 
     try {
       for (const chunkedItems of itemsToHideChunks) {
-        await this.prisma.client.$transaction(async prisma => {
+        await this.prismaService.client.$transaction(async prisma => {
           const hidItems = await Promise.all(
             chunkedItems.map(id1c => {
               return prisma.item.update({
@@ -420,7 +430,7 @@ export class ItemService {
 
     try {
       // Define items to create
-      const itemsFromPostgreSQL = await this.getAll();
+      const itemsFromPostgreSQL = await this.manageItemsRedisCache('GET');
       const itemIdFromPostgreSQL = itemsFromPostgreSQL.map(item => item.id1c);
       const itemId1c = itemsFrom1c.map(item => item.id1c);
 
@@ -448,7 +458,9 @@ export class ItemService {
           return !isEqual;
         });
 
-      const itemsToHide = itemIdFromPostgreSQL.filter(id => !itemId1c.includes(id));
+      const itemsToHide = itemsFromPostgreSQL
+        .filter(itm => !itemId1c.includes(itm.id1c) && !itm.isHidden)
+        .map(item => item.id1c);
 
       const createdItems = await this.createMany(itemsToCreate);
       const updatedItems = await this.updateMany(itemsToUpdate);
@@ -464,10 +476,6 @@ export class ItemService {
 
   async getAll(): Promise<Array<ItemWithImageLinks>> {
     return await this.manageItemsRedisCache('GET');
-  }
-
-  async deleteCatalogFromRedisStorage() {
-    await this.redisClient.del(this.redisKey_AllItems);
   }
 
   async getByParams(
@@ -493,7 +501,7 @@ export class ItemService {
     }
 
     if (!itemsPerRequestFromRedis) {
-      itemsByCategory = await this.prisma.client.item.findMany({
+      itemsByCategory = await this.prismaService.client.item.findMany({
         where: {
           categoryId,
         },

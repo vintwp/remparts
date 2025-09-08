@@ -1,9 +1,21 @@
-import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateIf,
+} from 'class-validator';
 
 export class SyncCatalogDto {
   @IsString({ message: 'id should be a string' })
   @IsNotEmpty({ message: 'id is required' })
   id: string;
+
+  @IsOptional()
+  @IsBoolean({ message: 'Active should be a boolean' })
+  isHidden?: boolean;
 
   @IsString({ message: 'Name should be a string' })
   @IsNotEmpty({ message: 'Name is required' })
@@ -26,7 +38,8 @@ export class SyncCatalogDto {
   priceWholesaleTop: number;
 
   @IsString({ message: 'AfmId should be a string' })
-  afmId: string;
+  @ValidateIf(obj => obj.afmId !== null && obj.afmId !== undefined)
+  afmId: string | null;
 
   @IsNotEmpty({ message: 'CategoryId is required' })
   @IsInt({ message: 'CategoryId should be an integer' })

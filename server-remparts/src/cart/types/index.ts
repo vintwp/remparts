@@ -1,4 +1,4 @@
-import { ItemWithImageLinks } from 'src/types';
+import { ItemWithImageLinks } from 'src/shared/types/';
 
 export type TItemCart = Pick<ItemWithImageLinks, 'id' | 'name' | 'price'> & {
   itemQty: number;

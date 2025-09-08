@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { messagesFromServer } from 'src/config/messagesFromServer';
 import { ROLES_KEY } from 'src/constants';
-import { ROLE, TJwtUser } from 'src/types';
+import { ROLE, TJwtUser } from 'src/shared/types/';
 
 @Injectable()
 export class ValidateUserAccessByIdGuard implements CanActivate {

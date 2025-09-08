@@ -11,7 +11,7 @@ import {
 import { Request } from 'express';
 import { SearchService } from './search.service';
 import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt-auth.guard';
-import { TJwtUser } from 'src/types';
+import { TJwtUser } from 'src/shared/types/';
 
 @Controller('search')
 export class SearchController {

@@ -6,7 +6,7 @@ import { Category, CustomerPriceTier } from '@prisma/client';
 import { ItemService } from 'src/item/item.service';
 import { TResponseCategoryByUrl } from './types';
 import Redis from 'ioredis';
-import { priceTierToProductParam } from 'src/types';
+import { priceTierToProductParam } from 'src/shared/types/';
 
 const SECONDS_PER_HOUR = 3600;
 

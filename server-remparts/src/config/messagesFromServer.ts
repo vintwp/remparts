@@ -194,5 +194,15 @@ export const messagesFromServer = {
       ua: 'Помилка при створені/оновленні товарів',
       ru: 'Ошибка при создании/обновлении товаров',
     },
+    updateSettlementsSuccess: {
+      en: 'Settlements were successfully updated',
+      ua: 'Взаєморозрахунки успішно ононовлені',
+      ru: 'Взаиморасчеты успешно обновлены',
+    },
+    updateSettlementsError: {
+      en: 'Error updating settlements',
+      ua: 'Помилка при оновленні взаєморозрахунків',
+      ru: 'Ошибка при обновлении взаиморасчетов',
+    },
   },
 };

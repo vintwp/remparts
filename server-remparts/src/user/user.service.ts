@@ -7,21 +7,28 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Cart, Invoice, Order, Payment, Prisma, User } from '@prisma/client';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from 'src/prisma.extension';
-import { isDev } from 'src/lib/utils';
+import { chunkArray, isDev } from 'src/lib/utils';
 import { ConfigService } from '@nestjs/config';
 import { messagesFromServer } from 'src/config/messagesFromServer';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserSettlementsDto } from './dto/update-user-settlements.dto';
+import Redis from 'ioredis';
+import { UserWithSettlementsAndOrder } from './types/UserFull';
 
 @Injectable()
 export class UserService {
+  private readonly redisKey_AllUsers: string;
   constructor(
     @Inject('PrismaService')
     private readonly prismaService: CustomPrismaService<ExtendedPrismaClient>,
     private readonly configService: ConfigService,
-  ) {}
+    @Inject('REDIS_CLIENT') private readonly redisClient: Redis,
+  ) {
+    this.redisKey_AllUsers = 'users_all';
+  }
 
   async createUser(
     data: Pick<User, 'email'> & Partial<Omit<User, 'email'>>,
@@ -55,6 +62,7 @@ export class UserService {
       data: user,
     };
   }
+
   async getById(id: number): Promise<{ data: User | null }> {
     const user = await this.prismaService.client.user.findUnique({
       where: {
@@ -174,7 +182,141 @@ export class UserService {
     };
   }
 
-  async getAllUsers() {
-    return await this.prismaService.client.user.findMany();
+  // 1c sync
+  async updateUserBalanceAndPriceTier(
+    data: Array<Pick<User, 'id' | 'balance' | 'customerPriceTier'>>,
+  ) {
+    const dataChunks = chunkArray(data, 50);
+
+    try {
+      for (const chunkedData of dataChunks) {
+        await this.prismaService.client.$transaction(
+          chunkedData.map(user =>
+            this.prismaService.client.user.update({
+              where: { id: user.id },
+              data: {
+                balance: user.balance,
+                customerPriceTier: user.customerPriceTier,
+              },
+            }),
+          ),
+        );
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllUsersFromDB(): Promise<UserWithSettlementsAndOrder[]> {
+    const users = await this.prismaService.client.user.findMany({
+      include: {
+        payment: true,
+        invoice: {
+          select: {
+            id: true,
+            id1c: true,
+            totalAmount: true,
+            createdAt: true,
+            userId: true,
+            item: {
+              select: {
+                item: {
+                  select: {
+                    name: true,
+                  },
+                },
+                itemId: true,
+                price: true,
+                amountPerItem: true,
+                itemQty: true,
+              },
+            },
+          },
+        },
+        order: true,
+      },
+    });
+
+    const usersToReponse = users.map(user => {
+      const { invoice, ...rest } = user;
+
+      const invoiceToResponse = invoice.map(inv => {
+        const { item, ...restInvoice } = inv;
+
+        const itemsToReponse = item
+          .map(itm => {
+            const { item, itemId, ...restItem } = itm;
+
+            return {
+              ...restItem,
+              id: itemId,
+              name: item.name,
+            };
+          })
+          .sort((a, b) => a.id.localeCompare(b.id));
+
+        return {
+          ...restInvoice,
+          item: itemsToReponse,
+        };
+      });
+
+      return {
+        ...rest,
+        invoice: invoiceToResponse,
+      };
+    });
+
+    return usersToReponse;
+  }
+
+  async manageUsersRedisCache(action: 'DELETE' | 'GET' | 'RESET' = 'GET') {
+    const actionDelete = async () => {
+      await this.redisClient.del(this.redisKey_AllUsers);
+
+      return [] as UserWithSettlementsAndOrder[];
+    };
+
+    const actionReset = async () => {
+      await actionDelete();
+
+      const itemsFromDb = await this.getAllUsersFromDB();
+
+      await this.redisClient.set(this.redisKey_AllUsers, JSON.stringify(itemsFromDb));
+
+      return itemsFromDb as UserWithSettlementsAndOrder[];
+    };
+
+    const actionGet = async () => {
+      const allUsersFromRedis = await this.redisClient.get(this.redisKey_AllUsers);
+
+      if (allUsersFromRedis) {
+        return JSON.parse(allUsersFromRedis) as UserWithSettlementsAndOrder[];
+      }
+
+      const itemsFromDb = await actionReset();
+
+      return itemsFromDb;
+    };
+
+    switch (action) {
+      case 'DELETE':
+        return actionDelete();
+
+      case 'RESET':
+        return actionReset();
+
+      default:
+        return actionGet();
+    }
+  }
+
+  async getMappedBy1cUsers() {
+    const usersFromDb = await this.manageUsersRedisCache();
+    const usersSyncedWith1c = usersFromDb.filter(user => user.id1c !== null);
+
+    const mapped = new Map<string, User>(usersSyncedWith1c.map(user => [user.id1c, user]));
+
+    return mapped;
   }
 }

@@ -12,6 +12,7 @@ import { SyncCurrencyDto } from './dto/sync-currency.dto';
 import { SyncCatalogDto } from './dto/sync-catalog.dto';
 import { CurrencyService } from 'src/currency/currency.service';
 import { messagesFromServer } from 'src/config/messagesFromServer';
+import { UserSettlementsDto } from './dto/user-settlements.dto';
 
 @Controller('sync')
 export class SyncController {
@@ -35,6 +36,8 @@ export class SyncController {
           `Удалено - ${res.hiddenItems.length}`,
       };
     } catch (error) {
+      console.log(error);
+
       throw new InternalServerErrorException(
         `${messagesFromServer.sync.updateItemsError.ru}, ${error.message}`,
       );
@@ -60,5 +63,15 @@ export class SyncController {
 
   @Post('settlements')
   @HttpCode(HttpStatus.OK)
-  async syncSettlements() {}
+  async syncSettlements(
+    @Body(new ParseArrayPipe({ items: UserSettlementsDto })) dto: UserSettlementsDto[],
+  ) {
+    try {
+      return this.syncService.syncSettlements(dto);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `${messagesFromServer.sync.updateSettlementsError.ru}, ${error.message}`,
+      );
+    }
+  }
 }

@@ -1,5 +1,5 @@
 import { Brand, Category, Department, Item, Quality } from '@prisma/client';
-import { ItemWithImageLinks, TPagination } from 'src/types';
+import { ItemWithImageLinks, TPagination } from 'src/shared/types/';
 
 type TResponseCategoryByUrl = {
   category: Category & {

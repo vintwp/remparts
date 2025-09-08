@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Req } from '
 import { CartService } from './cart.service';
 import { IsAuthorized } from 'src/auth/decorators/is-authorized.decorator';
 import { Request } from 'express';
-import { TJwtUser } from 'src/types';
+import { TJwtUser } from 'src/shared/types/';
 import { AddItemCartDto } from './dto/add-item-cart.dto';
 import { DeleteItemCartDto } from './dto/delete-item-cart.dto';
 

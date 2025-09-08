@@ -2,7 +2,7 @@ import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { Category, Item } from '@prisma/client';
 import Redis from 'ioredis';
 import { Index, MeiliSearch, MeiliSearchApiError, SearchResponse, Settings } from 'meilisearch';
-import { ItemWithImageObjects } from 'src/types';
+import { ItemWithImageObjects } from 'src/shared/types/';
 
 @Injectable()
 export class MeiliService implements OnApplicationBootstrap {

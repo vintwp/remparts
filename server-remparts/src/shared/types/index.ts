@@ -6,8 +6,9 @@ import {
 } from './item';
 import { type TPagination } from './pagination';
 import { type TJwtUser } from './jwtUser';
-import { priceTierToProductParam } from './priceTier';
+import { priceTierToProductParam, CustomerPriceTier } from './priceTier';
 import { RoleByDB, type ROLE } from './roles';
+import { type Settlement } from './settlement';
 
 export {
   type TPagination,
@@ -17,6 +18,8 @@ export {
   type ItemWithImageObjects,
   type ItemWithImageLinks,
   priceTierToProductParam,
+  CustomerPriceTier,
   RoleByDB,
   type ROLE,
+  type Settlement,
 };
