@@ -1,20 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { startHolyLoader } from 'holy-loader';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import { useCustomSearchParams } from '@/shared/hooks';
+import { cn } from '@/shared/lib/utils';
+import { ScrollArea } from '@/shared/ui';
+
+import { FilterParams } from '../types';
+
 import { FilterInput } from './FilterInput';
 import { FilterValueCheck } from './FilterValueCheck';
-import { startHolyLoader } from 'holy-loader';
-import { useCustomSearchParams } from '@/shared/hooks';
-import { ScrollArea } from '@/shared/ui';
-import { FilterParams } from '../types';
-import { cn } from '@/shared/lib/utils';
 
 type Props<T> = {
   title: string;
   searchParameter: string;
   variant?: 'single' | 'multiple';
   raiseUpChecked?: boolean;
+  hiddenId?: number[];
   filterProperties?: T[];
   showCommand?: boolean;
   scrollAreaClassName?: string;
@@ -25,6 +29,7 @@ export function FilterBy<T extends FilterParams>({
   searchParameter,
   variant = 'multiple',
   raiseUpChecked = true,
+  hiddenId = [1],
   filterProperties = [],
   showCommand = false,
   scrollAreaClassName,
@@ -83,16 +88,18 @@ export function FilterBy<T extends FilterParams>({
 
           return Number(isChecked(b.id)) - Number(isChecked(a.id));
         })
-        .map(itemFilter => (
-          <li key={`filter-title-${itemFilter.name || itemFilter.value}`}>
-            <FilterValueCheck
-              id={itemFilter.id}
-              value={itemFilter.name || itemFilter.value || ''}
-              checked={isChecked(itemFilter.id)}
-              onCheck={handleCheck}
-            />
-          </li>
-        ))}
+        .map(itemFilter =>
+          !hiddenId.includes(itemFilter.id) ? (
+            <li key={`filter-title-${itemFilter.name || itemFilter.value}`}>
+              <FilterValueCheck
+                id={itemFilter.id}
+                value={itemFilter.name || itemFilter.value || ''}
+                checked={isChecked(itemFilter.id)}
+                onCheck={handleCheck}
+              />
+            </li>
+          ) : null,
+        )}
     </ul>
   );
 
@@ -106,7 +113,10 @@ export function FilterBy<T extends FilterParams>({
       {showCommand && <FilterInput onChange={handleInput} />}
 
       {itemsToRender.length > 10 ? (
-        <ScrollArea className={cn('h-72 w-full md:h-96', scrollAreaClassName)}>
+        <ScrollArea
+          type="auto"
+          className={cn('h-72 w-full md:h-96', scrollAreaClassName)}
+        >
           {renderList()}
         </ScrollArea>
       ) : (

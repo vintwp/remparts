@@ -25,8 +25,9 @@ export class ItemService {
     return +fieldId > 0 ? +fieldId : 1;
   }
 
-  private async getAllItemsFromDB() {
+  private async getAllItemsFromDB(includeHidden = false) {
     const items = await this.prismaService.client.item.findMany({
+      where: { isHidden: includeHidden },
       include: {
         category: {
           select: {
@@ -66,6 +67,10 @@ export class ItemService {
     const filteredItems = [...items].filter(item => {
       let shouldBeAdded = true;
 
+      if (item.isHidden) {
+        return false;
+      }
+
       // check for brand condition
 
       if (categoryId.length > 0 && !categoryId.includes(item.categoryId)) {
@@ -80,7 +85,7 @@ export class ItemService {
         shouldBeAdded = false;
       }
 
-      if (complianceId.length > 0 && !qualityId.includes(item.complianceId)) {
+      if (complianceId.length > 0 && !complianceId.includes(item.complianceId)) {
         shouldBeAdded = false;
       }
 
@@ -488,7 +493,7 @@ export class ItemService {
     sortBy?: string,
     stock?: boolean,
   ) {
-    const cacheKeyRedis = `category-${categoryId}`;
+    const cacheKeyRedis = `itemService_category-${categoryId}`;
 
     let itemsByCategory: ItemWithImageObjects[];
 
@@ -497,13 +502,14 @@ export class ItemService {
     // assign cached Items
 
     if (itemsPerRequestFromRedis) {
-      itemsByCategory = JSON.parse(itemsPerRequestFromRedis);
+      itemsByCategory = JSON.parse(itemsPerRequestFromRedis) as ItemWithImageObjects[];
     }
 
     if (!itemsPerRequestFromRedis) {
       itemsByCategory = await this.prismaService.client.item.findMany({
         where: {
           categoryId,
+          isHidden: false,
         },
         include: {
           images: {

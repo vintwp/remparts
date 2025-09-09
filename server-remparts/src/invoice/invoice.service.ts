@@ -16,9 +16,6 @@ export class InvoiceService {
 
   async createAndUpdateInvoice(data: Array<Invoice & { item: InvoiceToItem[] }>) {
     try {
-      console.log('update invoices');
-      const itemsAll = await this.itemService.getAll();
-
       const chunkedInvoices = chunkArray(data, 10);
 
       for (const chunkedInvoice of chunkedInvoices) {

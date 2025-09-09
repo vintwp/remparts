@@ -36,8 +36,6 @@ export class SyncController {
           `Удалено - ${res.hiddenItems.length}`,
       };
     } catch (error) {
-      console.log(error);
-
       throw new InternalServerErrorException(
         `${messagesFromServer.sync.updateItemsError.ru}, ${error.message}`,
       );

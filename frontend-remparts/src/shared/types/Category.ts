@@ -4,6 +4,7 @@ interface Category {
   url: string;
   image: string;
   departmentId: number;
+  isVisible: boolean;
 }
 
 export { type Category };

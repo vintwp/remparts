@@ -31,7 +31,7 @@ export class DepartmentService {
     return department;
   }
 
-  async getAll(includeCategories?: boolean): Promise<{ data: Department[] }> {
+  async getAll(includeCategories = true): Promise<{ data: Department[] }> {
     const redisKey = `departments-all`;
 
     const departmentsFromRedis = await this.redisClient.get(redisKey);
@@ -49,6 +49,8 @@ export class DepartmentService {
           : false,
       },
     });
+
+    console.log(departments, 'departments GET ALL');
 
     await this.redisClient.setex(redisKey, 7 * 12 * 3600, JSON.stringify(departments));
 
