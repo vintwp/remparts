@@ -1,10 +1,10 @@
 import { Item } from '@/shared/types';
 
-type ItemCart = Pick<Item, 'id' | 'name' | 'price' | 'images'> & { itemQty: number };
+type CartItem = Pick<Item, 'id' | 'name' | 'price' | 'images'> & { itemQty: number };
 
 type Cart = {
-  items: ItemCart[];
+  items: CartItem[];
   totalSum: number;
 };
 
-export { type Cart, type ItemCart };
+export type { Cart, CartItem };

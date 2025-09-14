@@ -17,6 +17,7 @@ export const SEARCH_API = getEnvVar('SEARCH_API');
 export const ALL_USERS = getEnvVar('USER_GETALL');
 export const CURRENCY_API = getEnvVar('CURRENCY_API');
 export const CART_API = getEnvVar('CART_API');
+export const ORDER_API = getEnvVar('ORDER_API');
 export const USER_API = getEnvVar('USER_API');
 export const SHIPPING_CITY_API = getEnvVar('SHIPPING_CITY_API');
 export const SHIPPING_WAREHOUSE_API = getEnvVar('SHIPPING_WAREHOUSE_API');

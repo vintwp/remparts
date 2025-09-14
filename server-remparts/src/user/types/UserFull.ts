@@ -15,6 +15,7 @@ type UserInvoice = {
   totalAmount: number;
   createdAt: Date;
   item: ItemInvoice[];
+  comment?: string;
 };
 
 type UserWithSettlementsAndOrder = User & {

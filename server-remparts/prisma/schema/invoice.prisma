@@ -5,6 +5,7 @@ model Invoice {
   userId      Int @map("user_id")
   item        InvoiceToItem[]
   totalAmount Float @default(0) @map("invoice_total_amount")
+  comment     String?
   createdAt   DateTime
 
   @@map("invoice")

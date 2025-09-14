@@ -64,7 +64,7 @@ class Fetch {
     return this.fetchData<T>(url, {}, config, 'GET');
   }
 
-  async postData<T, K = Record<string, JsonValue>>(
+  async postData<T, K = Record<string, JsonValue> | Array<JsonValue>>(
     url: string,
     body: K,
     config: RequestInit = {},

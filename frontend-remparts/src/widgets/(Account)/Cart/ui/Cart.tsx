@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { addToCart, deleteFromCart } from '@/entities/cart';
 import { mutateCart } from '@/entities/cart';
 import { useCart } from '@/entities/cart/hooks/useCart';
 import { useExchangeRate } from '@/entities/exchangeRate';
+import { CreateOrderItem, createOrder } from '@/entities/order';
 
 import { Overlay } from '@/shared/component';
 import { useAuth } from '@/shared/hooks';
@@ -49,14 +51,42 @@ export function Cart() {
     setIsLoading(false);
   };
 
-  const onClearCart = async () => {
-    setIsLoading(true);
+  const onClearCart = async (skipLoading = false) => {
+    if (!skipLoading) {
+      setIsLoading(true);
+    }
 
     if (auth?.access_token) {
       const addedItems = items.map(itm => itm.id);
 
       await deleteFromCart(addedItems, auth.access_token);
       await mutateCart(auth.access_token);
+    }
+
+    if (!skipLoading) {
+      setIsLoading(false);
+    }
+  };
+
+  const onCreateOrder = async () => {
+    try {
+      const itemsToSend: CreateOrderItem[] = items.map(itm => ({
+        id: itm.id,
+        itemQty: itm.itemQty,
+        amountPerItem: itm.price,
+      }));
+
+      const res = await createOrder(itemsToSend, auth?.access_token);
+
+      if (res.ok) {
+        toast.success(res.message || 'Замовлення створено успішно');
+        await onClearCart(true);
+      }
+
+      if (!res.ok) {
+        toast.error(res.message || 'Помилка при створенні замовлення');
+      }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -80,7 +110,8 @@ export function Cart() {
           <Button
             variant="link"
             className="h-auto p-0 text-red-500 hover:text-red-800 md:absolute md:-top-4 md:right-0 md:-translate-y-full"
-            onClick={onClearCart}
+            onClick={() => onClearCart}
+            disabled={isLoading}
           >
             Очистити кошик
           </Button>
@@ -97,7 +128,13 @@ export function Cart() {
                 )}
               </div>
             </div>
-            <Button className="bg-primary-alt hover:bg-primary-alt/80">Замовити</Button>
+            <Button
+              className="bg-primary-alt hover:bg-primary-alt/80"
+              onClick={onCreateOrder}
+              disabled={isLoading}
+            >
+              Замовити
+            </Button>
           </div>
         </div>
       ) : null}

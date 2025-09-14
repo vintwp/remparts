@@ -1,0 +1,98 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { CustomPrismaService } from 'nestjs-prisma';
+import { ExtendedPrismaClient } from 'src/prisma.extension';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { Order } from '@prisma/client';
+import { chunkArray, compareArrayOfObjectsByKeys } from 'src/lib/utils';
+
+@Injectable()
+export class OrderService {
+  constructor(
+    @Inject('PrismaService')
+    private readonly prismaService: CustomPrismaService<ExtendedPrismaClient>,
+  ) {}
+
+  async getAllOrders() {
+    return this.prismaService.client.order.findMany();
+  }
+
+  async create(userEmail: string, item: CreateOrderDto[]) {
+    try {
+      const req = await this.prismaService.client.order.create({
+        data: {
+          user: {
+            connect: {
+              email: userEmail,
+            },
+          },
+          item: {
+            createMany: {
+              data: item.map(itm => ({
+                itemId: itm.id,
+                itemQty: itm.itemQty,
+                itemPrice: itm.amountPerItem,
+              })),
+            },
+          },
+          id1c: '',
+          comment: '',
+        },
+      });
+
+      return req;
+    } catch (error) {
+      console.log(error);
+      throw new Error(error);
+    }
+  }
+
+  // Unsync order haven't id1c
+  async getUnsyncOrders() {
+    const orders = await this.prismaService.client.order.findMany({
+      where: {
+        id1c: '',
+        AND: { user: { id1c: { not: '' } } },
+      },
+      include: {
+        item: {
+          include: {
+            item: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    return orders;
+  }
+
+  async updateOrders(data: Array<Pick<Order, 'id' | 'id1c' | 'processed' | 'comment'>>) {
+    try {
+      const chunkedOrders = chunkArray(data, 10);
+      const updatedOrders: Order[] = [];
+
+      for (const chunkedOrder of chunkedOrders) {
+        const res = await this.prismaService.client.$transaction(
+          chunkedOrder.map(order =>
+            this.prismaService.client.order.updateManyAndReturn({
+              where: {
+                id: order.id,
+              },
+              data: {
+                id1c: order.id1c,
+                processed: order.processed,
+                comment: order.comment,
+              },
+            }),
+          ),
+        );
+
+        updatedOrders.push(...res.flatMap(itm => itm));
+      }
+
+      return updatedOrders;
+    } catch (error) {
+      throw error;
+    }
+  }
+}

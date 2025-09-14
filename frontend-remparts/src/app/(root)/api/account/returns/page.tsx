@@ -5,5 +5,5 @@ export const metadata: Metadata = {
 };
 
 export default function ReturnsPage() {
-  return <div>Returns</div>;
+  return <div className="text-center">This page in under construction</div>;
 }

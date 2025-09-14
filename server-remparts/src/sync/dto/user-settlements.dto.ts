@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsNumber, IsString, ValidateNested } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { CustomerPriceTier } from 'src/shared/types/';
 
 enum Currency {
@@ -63,6 +70,10 @@ class Invoice {
 
   @IsNumber({}, { message: 'Date should be a string' })
   totalAmount: number;
+
+  @IsString({ message: 'Comment should be a string' })
+  @IsOptional()
+  comment?: string;
 
   @ValidateNested({ each: true })
   @Type(() => Item)

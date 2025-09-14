@@ -26,6 +26,7 @@ import { ShippingModule } from './shipping/shipping.module';
 import { SyncModule } from './sync/sync.module';
 import { PaymentModule } from './payment/payment.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { InvoiceModule } from './invoice/invoice.module';
     SyncModule,
     PaymentModule,
     InvoiceModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService, HashService],

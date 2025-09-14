@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
@@ -13,6 +14,7 @@ import { SyncCatalogDto } from './dto/sync-catalog.dto';
 import { CurrencyService } from 'src/currency/currency.service';
 import { messagesFromServer } from 'src/config/messagesFromServer';
 import { UserSettlementsDto } from './dto/user-settlements.dto';
+import { PostProcessedOrdersDto } from './dto/post-processed.dto';
 
 @Controller('sync')
 export class SyncController {
@@ -70,6 +72,37 @@ export class SyncController {
       throw new InternalServerErrorException(
         `${messagesFromServer.sync.updateSettlementsError.ru}, ${error.message}`,
       );
+    }
+  }
+
+  @Get('orders')
+  @HttpCode(HttpStatus.OK)
+  async getNewOrders() {
+    const res = await this.syncService.syncOrders();
+
+    return {
+      data: res.orderCsv,
+      message: `${messagesFromServer.sync.updateOrdersSuccess.ru}. Новых заказов - ${res.order.length}`,
+    };
+  }
+
+  @Post('orders')
+  @HttpCode(HttpStatus.OK)
+  async postProcessedOrders(
+    @Body(new ParseArrayPipe({ items: PostProcessedOrdersDto })) dto: PostProcessedOrdersDto[],
+  ) {
+    try {
+      const res = await this.syncService.updateOrders(dto);
+
+      return {
+        data: null,
+        message: `${messagesFromServer.sync.updateOrdersOnServerSuccess.ru}. Обновлено - ${res.length}`,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        message: `${messagesFromServer.sync.updateOrdersOnServerSuccess.ru}`,
+      };
     }
   }
 }

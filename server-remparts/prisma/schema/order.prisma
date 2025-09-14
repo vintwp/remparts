@@ -1,8 +1,11 @@
 model Order {
-  id          Int @id @default(autoincrement()) @map("cart_id")
+  id          Int @id @default(autoincrement()) @map("order_id")
+  id1c        String? @map("order_id_1c")
   user        User @relation(fields: [userEmail], references: [email])
-  userEmail   String @unique @map("user_email") 
+  userEmail   String @map("user_email") 
   item        OrderToItem[]
+  processed   Boolean @default(false)
+  comment     String? @map("order_comment")
   createdAt   DateTime  @default(now()) @map("created_at")
   
   @@map("order")

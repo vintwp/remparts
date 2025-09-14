@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ItemService } from 'src/item/item.service';
 import { SyncCatalogDto } from './dto/sync-catalog.dto';
-import { messagesFromServer } from 'src/config/messagesFromServer';
 import { UserService } from 'src/user/user.service';
 import { UserSettlementsDto } from './dto/user-settlements.dto';
 import { Currency, Invoice, InvoiceToItem, Payment, User } from '@prisma/client';
 import { compareArrayOfObjectsByKeys, compareObjectsByKeys, parseDate } from 'src/lib/utils';
 import { PaymentService } from 'src/payment/payment.service';
 import { InvoiceService } from 'src/invoice/invoice.service';
+import { OrderService } from 'src/order/order.service';
+import { json2csv } from 'json-2-csv';
+import { PostProcessedOrdersDto } from './dto/post-processed.dto';
 
 @Injectable()
 export class SyncService {
@@ -16,6 +18,7 @@ export class SyncService {
     private readonly userService: UserService,
     private readonly paymentService: PaymentService,
     private readonly invoiceService: InvoiceService,
+    private readonly orderService: OrderService,
   ) {}
 
   async syncCatalog(itemsFrom1c: SyncCatalogDto[]) {
@@ -113,6 +116,7 @@ export class SyncService {
           const invoiceId = invoice.hash;
           const invoiceId1c = invoice.id;
           const createdAt = invoice.createdAt;
+          const comment = invoice.comment;
           const items = invoice.items
             .map(item => ({
               invoiceId,
@@ -135,6 +139,7 @@ export class SyncService {
             createdAt: parseDate(createdAt),
             totalAmount: invoice.totalAmount,
             item: items,
+            comment,
           };
         });
 
@@ -144,6 +149,7 @@ export class SyncService {
           const invoiceId = invoice.id;
           const invoiceId1c = invoice.id1c;
           const createdAt = invoice.createdAt;
+          const invoiceComment = invoice.comment;
 
           const items = invoice.item.map(item => ({
             invoiceId,
@@ -162,6 +168,7 @@ export class SyncService {
             createdAt: createdAt,
             totalAmount: invoice.totalAmount,
             item: items,
+            comment: invoiceComment,
           };
         },
       );
@@ -184,5 +191,62 @@ export class SyncService {
     await this.paymentService.createAndUpdatePayments(paymentsToCreateAndUpdate);
     await this.invoiceService.createAndUpdateInvoice(usersInvoiceToUpdate);
     await this.userService.manageUsersRedisCache('RESET');
+  }
+  async syncOrders() {
+    const orders = await this.orderService.getUnsyncOrders();
+
+    const ordersToUpload = orders
+      .flatMap(order => {
+        const { id, item: itemOrder, user } = order;
+
+        const itemsFromOrder = itemOrder.map(itm => {
+          const {
+            itemQty,
+            item: { id1c: itemId1c },
+          } = itm;
+
+          return {
+            userId: user.id1c,
+            orderId: id,
+            itemId1c: itemId1c,
+            itemQty: itemQty,
+            orderComment: order.comment,
+          };
+        });
+
+        return itemsFromOrder;
+      })
+      .sort((item1, item2) => item1.orderId - item2.orderId);
+
+    const ordersCsv = await json2csv(ordersToUpload, {
+      delimiter: {
+        eol: '^',
+      },
+    });
+
+    return {
+      order: orders,
+      orderCsv: ordersCsv,
+    };
+  }
+
+  async updateOrders(data: PostProcessedOrdersDto[]) {
+    const existOrders = await this.orderService.getAllOrders();
+
+    const invoicesCompared = compareArrayOfObjectsByKeys(
+      existOrders,
+      data,
+      ['id1c', 'processed', 'comment'],
+      'id',
+    );
+
+    const ordersToUpdate = invoicesCompared.notEqualObjects.map(order => ({
+      id: order.id,
+      id1c: order.id1c,
+      processed: order.processed,
+      comment: order.comment || '',
+    }));
+
+    return this.orderService.updateOrders(ordersToUpdate);
   }
 }

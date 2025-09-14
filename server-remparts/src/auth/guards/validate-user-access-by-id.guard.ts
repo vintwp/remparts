@@ -1,15 +1,8 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { messagesFromServer } from 'src/config/messagesFromServer';
-import { ROLES_KEY } from 'src/constants';
-import { ROLE, TJwtUser } from 'src/shared/types/';
+import { TJwtUser } from 'src/shared/types/';
 
 @Injectable()
 export class ValidateUserAccessByIdGuard implements CanActivate {

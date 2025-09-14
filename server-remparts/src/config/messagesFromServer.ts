@@ -173,6 +173,19 @@ export const messagesFromServer = {
     },
   },
 
+  order: {
+    createOrderSuccess: {
+      en: 'Order was successfully created',
+      ua: 'Замовлення успішно створено',
+      ru: 'Заказ успешно создан',
+    },
+    createOrderError: {
+      en: 'Error creating order',
+      ua: 'Помилка при створенні замовлення',
+      ru: 'Ошибка при создании заказа',
+    },
+  },
+
   sync: {
     updateCurrencySuccess: {
       en: 'Currency exchange rate was successfully updated',
@@ -203,6 +216,30 @@ export const messagesFromServer = {
       en: 'Error updating settlements',
       ua: 'Помилка при оновленні взаєморозрахунків',
       ru: 'Ошибка при обновлении взаиморасчетов',
+    },
+
+    updateOrdersSuccess: {
+      en: 'Orders were successfully updated',
+      ua: 'Замовлення успішно ононовлені',
+      ru: 'Заказы успешно обновлены',
+    },
+
+    updateOrdersError: {
+      en: 'Error updating orders',
+      ua: 'Помилка при оновленні замовлень',
+      ru: 'Ошибка при обновлении заказов',
+    },
+
+    updateOrdersOnServerSuccess: {
+      en: 'Orders were successfully updated on site',
+      ua: 'Замовлення успішно ононовлені на сайті',
+      ru: 'Заказы успешно обновлены на сайте',
+    },
+
+    updateOrdersOnServerError: {
+      en: 'Error updating orders on site',
+      ua: 'Помилка при оновленні замовлень на сайті',
+      ru: 'Ошибка при обновлении заказов на сайте',
     },
   },
 };
