@@ -50,8 +50,6 @@ export class DepartmentService {
       },
     });
 
-    console.log(departments, 'departments GET ALL');
-
     await this.redisClient.setex(redisKey, 7 * 12 * 3600, JSON.stringify(departments));
 
     return { data: departments };

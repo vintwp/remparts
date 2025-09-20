@@ -12,8 +12,10 @@ export class OrderService {
     private readonly prismaService: CustomPrismaService<ExtendedPrismaClient>,
   ) {}
 
-  async getAllOrders() {
-    return this.prismaService.client.order.findMany();
+  async getAllOrders(userId?: string) {
+    return this.prismaService.client.order.findMany({
+      where: { user: { id: +userId || undefined } },
+    });
   }
 
   async create(userEmail: string, item: CreateOrderDto[]) {
@@ -66,7 +68,21 @@ export class OrderService {
     return orders;
   }
 
-  async updateOrders(data: Array<Pick<Order, 'id' | 'id1c' | 'processed' | 'comment'>>) {
+  async updateOrders(
+    data: Array<
+      Pick<
+        Order,
+        | 'id'
+        | 'id1c'
+        | 'processed'
+        | 'comment'
+        | 'invoiceId'
+        | 'totalAmount'
+        | 'invoiceHash'
+        | 'orderHash'
+      >
+    >,
+  ) {
     try {
       const chunkedOrders = chunkArray(data, 10);
       const updatedOrders: Order[] = [];
@@ -80,8 +96,12 @@ export class OrderService {
               },
               data: {
                 id1c: order.id1c,
+                orderHash: order.orderHash,
                 processed: order.processed,
                 comment: order.comment,
+                totalAmount: order.totalAmount,
+                invoiceId: order.invoiceId,
+                invoiceHash: order.invoiceHash,
               },
             }),
           ),

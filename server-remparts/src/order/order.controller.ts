@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
+  Param,
   ParseArrayPipe,
   Post,
   Req,
@@ -15,17 +16,29 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { TJwtUser } from 'src/shared/types';
 import { Request } from 'express';
 import { messagesFromServer } from 'src/config/messagesFromServer';
+import { ValidateUserAccessById } from 'src/auth/decorators/validate-user-access-by-id.decorator';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
+  @ValidateUserAccessById()
+  @IsAuthorized()
+  @Get(':id/:orderId')
+  @HttpCode(HttpStatus.OK)
+  async getOrdersByIdForUser(@Param('id') userId: string, @Param('orderId') orderId: string) {
+    return this.orderService.getAllOrders(userId);
+  }
+
+  @ValidateUserAccessById()
   @IsAuthorized()
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async getOrder() {}
+  async getOrdersForUser(@Param('id') userId: string) {
+    return this.orderService.getAllOrders(userId);
+  }
 
-  @IsAuthorized()
+  @IsAuthorized('ADMIN')
   @Get()
   @HttpCode(HttpStatus.OK)
   async getAllOrders() {}

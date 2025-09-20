@@ -176,7 +176,7 @@ export class SyncService {
       const invoicesCompared = compareArrayOfObjectsByKeys(
         invoicesFromDb,
         invoicesFromUserSettlements,
-        ['totalAmount', 'item'],
+        ['totalAmount', 'item', 'comment'],
         'id',
       );
 
@@ -236,7 +236,7 @@ export class SyncService {
     const invoicesCompared = compareArrayOfObjectsByKeys(
       existOrders,
       data,
-      ['id1c', 'processed', 'comment'],
+      ['id1c', 'processed', 'comment', 'totalAmount', 'invoiceHash', 'invoiceId'],
       'id',
     );
 
@@ -245,6 +245,10 @@ export class SyncService {
       id1c: order.id1c,
       processed: order.processed,
       comment: order.comment || '',
+      totalAmount: order.totalAmount,
+      invoiceId: order.invoiceId || '',
+      invoiceHash: order.invoiceHash || '',
+      orderHash: order.orderHash || '',
     }));
 
     return this.orderService.updateOrders(ordersToUpdate);

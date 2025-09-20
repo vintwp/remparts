@@ -28,6 +28,7 @@ export class InvoiceService {
               update: {
                 userId: invoice.userId,
                 totalAmount: invoice.totalAmount,
+                comment: invoice.comment,
                 item: {
                   deleteMany: {},
                   create: invoice.item.map(item => ({
@@ -44,6 +45,7 @@ export class InvoiceService {
                 userId: invoice.userId,
                 totalAmount: invoice.totalAmount,
                 createdAt: invoice.createdAt.toISOString(),
+                comment: invoice.comment,
                 item: {
                   create: invoice.item.map(item => ({
                     itemId: item.itemId,
