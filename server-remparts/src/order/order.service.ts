@@ -1,9 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CustomPrismaService } from 'nestjs-prisma';
 import { ExtendedPrismaClient } from 'src/prisma.extension';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from '@prisma/client';
 import { chunkArray, compareArrayOfObjectsByKeys } from 'src/lib/utils';
+import { OrderItem } from './types/OrderItem';
 
 @Injectable()
 export class OrderService {
@@ -13,9 +14,22 @@ export class OrderService {
   ) {}
 
   async getAllOrders(userId?: string) {
-    return this.prismaService.client.order.findMany({
-      where: { user: { id: +userId || undefined } },
-    });
+    try {
+      const result = await this.prismaService.client.order.findMany({
+        where: { user: { id: +userId || undefined } },
+        include: {
+          item: {
+            include: {
+              item: true,
+            },
+          },
+        },
+      });
+
+      return result;
+    } catch {
+      throw NotFoundException;
+    }
   }
 
   async create(userEmail: string, item: CreateOrderDto[]) {
@@ -114,5 +128,75 @@ export class OrderService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getOrdersByUser(userId: string) {
+    try {
+      const result = await this.prismaService.client.order.findMany({
+        where: { user: { id: +userId } },
+        include: {
+          item: {
+            include: {
+              item: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const response = result.map(order => {
+        const { item, ...rest } = order;
+
+        const orderItems = item.map(itm => ({
+          itemId: itm.itemId,
+          itemQty: itm.itemQty,
+          itemName: itm.item.name,
+          itemPrice: itm.itemPrice,
+          itemAmount: itm.itemPrice * itm.itemQty,
+        }));
+
+        return {
+          ...rest,
+          items: orderItems,
+        };
+      });
+
+      return response;
+    } catch {
+      throw NotFoundException;
+    }
+  }
+  async getOrderById(userId: number, orderId: number) {
+    const order = await this.prismaService.client.order.findUnique({
+      where: {
+        id: orderId,
+        user: {
+          id: userId,
+        },
+      },
+      include: {
+        item: {
+          include: {
+            item: true,
+          },
+        },
+      },
+    });
+
+    const orderItems = order.item.map(itm => {
+      return {
+        ...itm,
+        name: itm.item.name,
+        item: undefined,
+      };
+    });
+
+    return {
+      ...order,
+      item: orderItems,
+    };
   }
 }

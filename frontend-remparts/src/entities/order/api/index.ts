@@ -1,9 +1,9 @@
 'use server';
 
-import { fetch } from '@/shared/api';
+import { FetchResponse, fetch } from '@/shared/api';
 import { ORDER_API } from '@/shared/config';
 
-import { CreateOrderItem } from '../types';
+import { CreateOrderItem, Order } from '../types';
 
 async function createOrder(items: CreateOrderItem[], accessToken: string) {
   return fetch.postData<CreateOrderItem[]>(ORDER_API, items, {
@@ -13,14 +13,34 @@ async function createOrder(items: CreateOrderItem[], accessToken: string) {
   });
 }
 
-async function getOrders(accessToken: string) {
-  return fetch.getData<CreateOrderItem[]>(ORDER_API, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+async function getOrder(
+  userId: undefined,
+  orderId: undefined,
+  accessToken: string,
+): Promise<FetchResponse<Order[]>>;
+async function getOrder(
+  userId: string,
+  orderId: undefined,
+  accessToken: string,
+): Promise<FetchResponse<Order[]>>;
+async function getOrder(
+  userId: string,
+  orderId: string,
+  accessToken: string,
+): Promise<FetchResponse<Order>>;
+async function getOrder<T extends Order>(
+  userId: string | undefined,
+  orderId: string | undefined,
+  accessToken: string,
+): Promise<FetchResponse<T[] | T>> {
+  return fetch.getData<T>(
+    `${ORDER_API}${userId ? `/${userId}` : ''}${orderId ? `/${orderId}` : ''}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-  });
+  );
 }
 
-async function getOrder(id: string, accessToken: string) {}
-
-export { createOrder, getOrders, getOrder };
+export { createOrder, getOrder as getOrders, getOrder };

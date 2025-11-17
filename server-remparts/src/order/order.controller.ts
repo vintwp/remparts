@@ -24,18 +24,18 @@ export class OrderController {
 
   @ValidateUserAccessById()
   @IsAuthorized()
-  @Get(':id/:orderId')
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async getOrdersByIdForUser(@Param('id') userId: string, @Param('orderId') orderId: string) {
-    return this.orderService.getAllOrders(userId);
+  async getOrdersForUser(@Param('id') userId: string) {
+    return this.orderService.getOrdersByUser(userId);
   }
 
   @ValidateUserAccessById()
   @IsAuthorized()
-  @Get(':id')
+  @Get(':id/:orderId')
   @HttpCode(HttpStatus.OK)
-  async getOrdersForUser(@Param('id') userId: string) {
-    return this.orderService.getAllOrders(userId);
+  async getOrderByIdForUser(@Param('id') userId: string, @Param('orderId') orderId: string) {
+    return this.orderService.getOrderById(+userId, +orderId);
   }
 
   @IsAuthorized('ADMIN')
@@ -56,8 +56,5 @@ export class OrderController {
     } catch {
       throw new InternalServerErrorException(messagesFromServer.order.createOrderError.ua);
     }
-
-    console.log('user create order', user);
-    console.log('order for user', dto);
   }
 }

@@ -17,9 +17,7 @@ export function FinanceBar() {
     <div className="border-b-text-additional text-additional border-b-[1px] py-0 pt-1 text-xs font-light md:text-sm">
       <Container className="flex justify-between py-0">
         <div>{`Курс: 1 USD = ${exchangeRate} грн.`}</div>
-        <div>
-          <p>Ваш Баланс: 0</p>
-        </div>
+        <div>Ваш Баланс: 0</div>
       </Container>
     </div>
   );

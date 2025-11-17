@@ -1,4 +1,4 @@
 import { mergeRefs } from './mergeRefs';
-import { cn, createURLSearchParams, delay, isDev, validateEmail } from './utils';
+import { cn, convertDate, createURLSearchParams, delay, isDev, validateEmail } from './utils';
 
-export { cn, createURLSearchParams, delay, isDev, validateEmail, mergeRefs };
+export { cn, createURLSearchParams, delay, isDev, validateEmail, mergeRefs, convertDate };

@@ -94,8 +94,6 @@ export class SyncController {
     try {
       const res = await this.syncService.updateOrders(dto);
 
-      console.log(dto);
-
       return {
         data: null,
         message: `${messagesFromServer.sync.updateOrdersOnServerSuccess.ru}. Обновлено - ${res.length}`,

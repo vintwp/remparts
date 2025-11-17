@@ -1,3 +1,4 @@
+import { DataTable, useDataTable } from './DataTable';
 import { FormInputError, FormInputInput, FormInputLabel, FormInputRoot } from './FormInput';
 import { NumberInput } from './NumberInput';
 import { Overlay } from './Overlay';
@@ -12,4 +13,6 @@ export {
   FormInputError,
   NumberInput,
   Overlay,
+  useDataTable,
+  DataTable,
 };

@@ -107,6 +107,16 @@ import { Separator } from './Separator';
 import { Skeleton } from './Skeleton';
 import { Toaster } from './Sonner';
 import { Spinner, type SpinnerSize } from './Spinner';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './Table';
 import { Triangle } from './Triangle';
 
 export {
@@ -214,4 +224,12 @@ export {
   CommandList,
   CommandSeparator,
   CommandShortcut,
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
 };

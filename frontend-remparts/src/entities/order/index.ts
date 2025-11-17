@@ -1,4 +1,4 @@
 import { createOrder, getOrder, getOrders } from './api';
-import { type CreateOrderItem } from './types';
+import { type CreateOrderItem, type Order } from './types';
 
-export { createOrder, getOrders, getOrder, type CreateOrderItem };
+export { createOrder, getOrders, getOrder, type CreateOrderItem, type Order };

@@ -1,6 +1,6 @@
 import { useDebouncedCallback } from 'use-debounce';
 
-import { ItemCart } from '@/entities/cart';
+import { type CartItem } from '@/entities/cart';
 
 import { NumberInput } from '@/shared/component';
 import { cn } from '@/shared/lib/utils';
@@ -11,7 +11,7 @@ import { CartItemInfo } from './CartItemInfo';
 import { CartItemPrice } from './CartItemPrice';
 
 type Props = {
-  item: ItemCart;
+  item: CartItem;
   onDelete: (id: number) => void;
   onChangeQty: (id: number, itemQty: number) => void;
 };

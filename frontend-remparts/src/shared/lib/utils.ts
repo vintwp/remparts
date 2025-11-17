@@ -38,6 +38,11 @@ export async function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+export function convertDate(isoDate: string) {
+  const date = new Date(isoDate);
+  return date.toLocaleDateString('ru-RU');
+}
+
 export function isDev() {
   return process.env.NODE_ENV === 'development';
 }
